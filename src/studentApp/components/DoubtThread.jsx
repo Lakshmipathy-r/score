@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Send, Loader2, User } from 'lucide-react';
-import { getDoubtWithReplies, addReplyToDoubt } from '../../lib/doubtService';
+import { getDoubtWithReplies, addReplyToDoubt, resolveDoubt } from '../../lib/doubtService';
 import toast from 'react-hot-toast';
 
-const DoubtThread = ({ doubtId, currentUser, onClose }) => {
+const DoubtThread = ({ doubtId, currentUser, onClose, onResolved }) => {
   const [doubt, setDoubt] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [replyText, setReplyText] = useState("");
@@ -50,6 +50,22 @@ const DoubtThread = ({ doubtId, currentUser, onClose }) => {
     }
   };
 
+  const handleResolve = async () => {
+    if (!window.confirm("Are you sure this doubt is cleared? It will be removed from the active forum.")) return;
+    
+    setIsSubmitting(true);
+    try {
+      await resolveDoubt(doubtId);
+      toast.success("Thread closed. It will no longer appear on the forum.");
+      if (onResolved) onResolved();
+      else onClose();
+    } catch (err) {
+      toast.error('Failed to resolve doubt.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <motion.div 
@@ -76,14 +92,25 @@ const DoubtThread = ({ doubtId, currentUser, onClose }) => {
             <>
               {/* Original Post */}
               <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                    <User className="w-5 h-5 text-primary" />
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                      <User className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-white uppercase tracking-wider">{doubt.authorName}</p>
+                      <p className="text-xs text-text-muted font-mono">{new Date(doubt.createdAt).toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-white uppercase tracking-wider">{doubt.authorName}</p>
-                    <p className="text-xs text-text-muted font-mono">{new Date(doubt.createdAt).toLocaleString()}</p>
-                  </div>
+                  {currentUser?.uid === doubt.authorId && (
+                    <button 
+                      onClick={handleResolve}
+                      disabled={isSubmitting}
+                      className="bg-black text-primary border border-primary hover:bg-primary/10 transition-colors uppercase text-[10px] tracking-widest font-bold px-3 py-1 clip-diagonal flex items-center shrink-0"
+                    >
+                      {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Close Thread"}
+                    </button>
+                  )}
                 </div>
                 
                 <h3 className="text-xl font-bold text-primary">{doubt.title}</h3>

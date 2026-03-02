@@ -14,6 +14,8 @@ import {
     ShieldCheck,
     PlusCircle,
     CheckCircle,
+    Check,
+    X as XIcon,
     User
 } from 'lucide-react';
 
@@ -38,6 +40,13 @@ const MentorDashboardHome = () => {
         { id: 1, action: "Replied to Community Thread", topic: "WebSockets Scaling", time: "2 hours ago" },
         { id: 2, action: "Completed Session", topic: "Next.js Authentication", time: "1 day ago" }
     ];
+
+    const [isAvailable, setIsAvailable] = React.useState(user?.isAvailable ?? true);
+
+    const toggleAvailability = () => {
+        setIsAvailable(!isAvailable);
+        // Note: In a real app we would update this in the backend too
+    };
 
     return (
         <div className="min-h-screen bg-background font-mono selection:bg-primary selection:text-black flex flex-col text-white">
@@ -144,8 +153,8 @@ const MentorDashboardHome = () => {
                                                     <Link to="/community" className="px-4 py-2 bg-primary/10 text-primary border border-primary/30 text-xs font-bold uppercase tracking-widest hover:bg-primary/20 transition-colors">
                                                         View Community
                                                     </Link>
-                                                    <button className="px-4 py-2 bg-white/5 text-white border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">
-                                                        Update Availability
+                                                    <button onClick={toggleAvailability} className="px-4 py-2 bg-white/5 text-white border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors flex items-center gap-2">
+                                                        {isAvailable ? <Check className="w-3 h-3 text-green-500" /> : <XIcon className="w-3 h-3 text-red-500" />} Update Availability
                                                     </button>
                                                 </div>
                                             </div>
@@ -188,15 +197,16 @@ const MentorDashboardHome = () => {
                                         <h2 className="text-lg font-bold uppercase tracking-widest">Quick Actions</h2>
                                     </div>
                                     <div className="p-6 flex flex-col gap-3">
-                                        <button className="w-full flex items-center gap-3 bg-primary/10 border border-primary/30 p-3 hover:bg-primary/20 transition-colors text-primary uppercase text-xs font-bold tracking-widest">
-                                            <PlusCircle className="w-4 h-4" /> Add Availability
+                                        <button onClick={toggleAvailability} className="w-full flex justify-between items-center gap-3 bg-primary/10 border border-primary/30 p-3 hover:bg-primary/20 transition-colors text-primary uppercase text-xs font-bold tracking-widest">
+                                            <span className="flex items-center gap-3"><PlusCircle className="w-4 h-4" /> Add Availability</span>
+                                            {isAvailable ? <span className="text-green-500 text-[10px] flex items-center gap-1"><Check className="w-3 h-3" /> Available</span> : <span className="text-red-500 text-[10px] flex items-center gap-1"><XIcon className="w-3 h-3" /> Busy</span>}
                                         </button>
-                                        <button className="w-full flex items-center gap-3 bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-colors text-white uppercase text-xs tracking-widest">
+                                        <Link to="/student/mentorship" className="w-full flex items-center gap-3 bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-colors text-white uppercase text-xs tracking-widest">
                                             <MessageSquare className="w-4 h-4 text-purple-400" /> Reply to Doubts
-                                        </button>
-                                        <button className="w-full flex items-center gap-3 bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-colors text-white uppercase text-xs tracking-widest">
+                                        </Link>
+                                        <Link to="/student/profile" className="w-full flex items-center gap-3 bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-colors text-white uppercase text-xs tracking-widest">
                                             <User className="w-4 h-4 text-cyan-400" /> View Profile
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
 

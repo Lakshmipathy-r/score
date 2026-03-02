@@ -60,7 +60,7 @@ const LoadingScreen = ({ onComplete }) => {
       <div className="scanlines"/>
 
       {/* Corner micro-text */}
-      <span className="floating-text top-6 left-6">BLACKCORE v1.0</span>
+      <span className="floating-text top-6 left-6">STUDENTS_CORE v1.0</span>
       <span className="floating-text top-6 right-6">SECURE_INIT</span>
       <span className="floating-text bottom-6 left-6">TRUST_PROTOCOL</span>
       <span className="floating-text bottom-6 right-6">SYS_CHECK</span>
@@ -68,16 +68,16 @@ const LoadingScreen = ({ onComplete }) => {
       {/* Main terminal content */}
       <div className={`flex flex-col items-start gap-3 ${isGlitching ? 'glitch' : ''}`}>
         {/* Completed messages */}
-        {systemMessages.slice(0, currentMessageIndex).map((msg, index) => (<motion.div key={index} initial={{ opacity: 0.6 }} animate={{ opacity: 0.35 }} className="text-micro text-muted-foreground">
-            <span className="text-foreground/50 mr-2">✓</span>
+        {systemMessages.slice(0, currentMessageIndex).map((msg, index) => (<motion.div key={index} initial={{ opacity: 0.6 }} animate={{ opacity: 0.8 }} className="text-sm text-primary uppercase tracking-widest font-bold">
+            <span className="text-white mr-2">✓</span>
             {msg}
           </motion.div>))}
         
         {/* Current typing message */}
-        {currentMessageIndex < systemMessages.length && (<div className="text-micro flex items-center">
-            <span className="text-foreground/60 mr-2">›</span>
+        {currentMessageIndex < systemMessages.length && (<div className="text-sm font-mono text-primary flex items-center shadow-neon">
+            <span className="text-white mr-2">›</span>
             <span>{displayedText}</span>
-            <span className={`ml-0.5 ${showCursor ? 'opacity-100' : 'opacity-0'}`} style={{ transition: 'opacity 0.1s' }}>
+            <span className={`ml-0.5 text-white ${showCursor ? 'opacity-100' : 'opacity-0'}`} style={{ transition: 'opacity 0.1s' }}>
               |
             </span>
           </div>)}

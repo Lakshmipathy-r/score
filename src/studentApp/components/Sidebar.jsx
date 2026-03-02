@@ -25,7 +25,7 @@ const Sidebar = () => {
     { icon: Home, label: 'Dashboard', path: '/student/dashboard' },
     { icon: Briefcase, label: 'Browse_Gigs', path: '/student/gigs' },
     { icon: FileText, label: 'Applications', path: '/student/applications' },
-    { icon: MessageCircle, label: 'Messages', path: '/student/messages', badge: 3 },
+    { icon: MessageCircle, label: 'Messages', path: '/student/messages' },
     { icon: Star, label: 'Reviews', path: '/student/reviews' },
     { icon: User, label: 'Profile', path: '/student/profile' },
     { icon: GraduationCap, label: 'Mentorship', path: '/student/mentorship' },

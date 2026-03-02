@@ -107,7 +107,7 @@ const Register = () => {
                   </div>
                   <div className="flex flex-col items-center">
                      <span className="text-2xl font-black text-white uppercase tracking-tighter shadow-neon">
-                        SF_HUB_
+                        S_CORE_
                      </span>
                      <span className="text-[10px] text-primary uppercase tracking-[0.5em]">System_Access</span>
                   </div>

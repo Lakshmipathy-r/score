@@ -18,6 +18,11 @@ const DoubtCard = ({ doubt, onClick }) => {
               <p className="text-[10px] text-text-muted font-mono">{new Date(doubt.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
+          {doubt.status === 'resolved' && (
+            <div className="text-[10px] font-bold uppercase tracking-widest text-[#FF003C] border border-[#FF003C]/30 bg-[#FF003C]/10 px-2 py-0.5">
+              Closed
+            </div>
+          )}
         </div>
         
         <h3 className="text-lg font-bold text-white mb-2 group-hover:text-primary transition-colors line-clamp-2">

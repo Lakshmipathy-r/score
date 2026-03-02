@@ -24,6 +24,7 @@ export const createDoubt = async (studentId, studentName, title, description, ta
       description,
       tags,
       repliesCount: 0,
+      status: 'open',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -35,18 +36,20 @@ export const createDoubt = async (studentId, studentName, title, description, ta
 };
 
 /**
- * Fetches all doubts, ordered by newest first.
+ * Fetches all doubts, ordered by newest first, filtering out resolved ones unless authored by the current user.
  */
-export const getDoubts = async () => {
+export const getDoubts = async (currentUserId) => {
   try {
     const doubtsQuery = query(collection(db, "doubts"), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(doubtsQuery);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      // Format timestamp if it exists, else use current time for immediate optimistic UI rendering
-      createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString()
-    }));
+    return snapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        // Format timestamp if it exists, else use current time for immediate optimistic UI rendering
+        createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString()
+      }))
+      .filter(doubt => !doubt.status || doubt.status === 'open' || doubt.authorId === currentUserId);
   } catch (error) {
     console.error("Error fetching doubts:", error);
     throw error;
@@ -111,3 +114,20 @@ export const getDoubtWithReplies = async (doubtId) => {
     throw error;
   }
 };
+
+/**
+ * Marks a doubt as resolved (closed).
+ */
+export const resolveDoubt = async (doubtId) => {
+  try {
+    const doubtRef = doc(db, "doubts", doubtId);
+    await updateDoc(doubtRef, {
+      status: 'resolved',
+      updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error resolving doubt:", error);
+    throw error;
+  }
+};
+

@@ -54,7 +54,7 @@ const AlumniMentorship = () => {
   const fetchDoubts = async () => {
     setIsDoubtsLoading(true);
     try {
-      const data = await getDoubts();
+      const data = await getDoubts(user?.uid);
       setDoubts(data);
     } catch (error) {
       console.error("Failed to fetch doubts", error);
@@ -318,7 +318,11 @@ const AlumniMentorship = () => {
         <DoubtThread 
           doubtId={selectedDoubt} 
           currentUser={user} 
-          onClose={() => setSelectedDoubt(null)} 
+          onClose={() => setSelectedDoubt(null)}
+          onResolved={() => {
+            setSelectedDoubt(null);
+            fetchDoubts();
+          }} 
         />
       )}
 

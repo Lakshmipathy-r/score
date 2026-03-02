@@ -48,7 +48,7 @@ const Navbar = () => {
               <Terminal className="w-5 h-5 text-primary group-hover:text-black" />
             </div>
             <span className="hidden md:block text-xl font-heading font-bold text-white tracking-tight">
-              SF_HUB<span className="text-primary animate-pulse">_</span>
+              S_CORE<span className="text-primary animate-pulse">_</span>
             </span>
           </Link>
 

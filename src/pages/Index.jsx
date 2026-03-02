@@ -27,7 +27,7 @@ const Index = () => {
             <ContentLayer className="min-h-screen">
               <div className="max-w-5xl">
                 <motion.span className="text-micro block mb-6 text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.8 }}>
-                  BLACKCORE — VERIFIED STUDENT NETWORK
+                  STUDENTS_CORE — VERIFIED STUDENT NETWORK
                 </motion.span>
                 
                 <h1 className="text-display mb-8">
@@ -217,7 +217,7 @@ const Index = () => {
 
               {/* Footer micro-text */}
               <motion.div className="absolute bottom-12 left-6 md:left-24 text-nano" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.5, duration: 1 }}>
-                <span>BLACKCORE © 2026</span>
+                <span>STUDENTS_CORE © 2026</span>
               </motion.div>
               
               <motion.div className="absolute bottom-12 right-6 md:right-24 text-nano" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.6, duration: 1 }}>

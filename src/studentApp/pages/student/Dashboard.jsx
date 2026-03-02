@@ -47,7 +47,7 @@ const StudentDashboard = () => {
   };
 
   const activities = [
-    { type: 'view', text: 'SYSTEM_ONLINE: Welcome to SF_HUB', time: 'Just now' },
+    { type: 'view', text: 'SYSTEM_ONLINE: Welcome to S_CORE_', time: 'Just now' },
   ];
 
   return (
