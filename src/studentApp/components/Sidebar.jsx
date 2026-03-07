@@ -35,7 +35,7 @@ const Sidebar = () => {
 
   const recruiterMenuItems = [
     { icon: Home, label: 'Dashboard', path: '/student/dashboard' },
-    { icon: Briefcase, label: 'My_Job_Posts', path: '/student/dashboard' }, // Placeholder, can be /my-jobs
+    { icon: Briefcase, label: 'My_Job_Posts', path: '/student/gigs' },
     { icon: Users, label: 'Find_Talent', path: '/student/find-talent' },
     { icon: Users, label: 'Applicants', path: '/student/applications' },
     { icon: MessageCircle, label: 'Interviews', path: '/student/messages' },
@@ -46,6 +46,7 @@ const Sidebar = () => {
   const mentorMenuItems = [
     { icon: Home, label: 'Dashboard', path: '/mentor-dashboard' },
     { icon: Users, label: 'Community', path: '/community' },
+    { icon: Briefcase, label: 'My_Gigs', path: '/student/gigs' },
     { icon: Briefcase, label: 'Sessions', path: '/mentor-dashboard' },
     { icon: MessageCircle, label: 'Notifications', path: '/student/messages' },
     { icon: User, label: 'Profile', path: '/student/profile' },
@@ -59,7 +60,11 @@ const Sidebar = () => {
   } else if (user?.role === 'Alumni/Mentor') {
     menuItems = studentMenuItems
       .filter(item => item.label !== 'Applications')
-      .map(item => item.label === 'Dashboard' ? { ...item, path: '/mentor-dashboard' } : item);
+      .map(item => {
+        if (item.label === 'Dashboard') return { ...item, path: '/mentor-dashboard' };
+        if (item.label === 'Browse_Gigs') return { ...item, label: 'My_Gigs' };
+        return item;
+      });
   }
 
   return (

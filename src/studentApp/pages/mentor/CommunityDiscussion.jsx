@@ -5,7 +5,7 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import { useAuthStore } from '../../store/authStore';
-import { subscribeToMessages, sendMessage } from '../../../lib/messageService';
+import { subscribeToMessages, sendMessage, editMessage } from '../../../lib/messageService';
 import { getUserProfile } from '../../../lib/userService';
 
 const CommunityDiscussion = () => {
@@ -17,6 +17,10 @@ const CommunityDiscussion = () => {
     
     // Track currently active channel tab
     const [activeChannel, setActiveChannel] = useState("global_community_chat");
+    
+    // Edit state
+    const [editingMsgId, setEditingMsgId] = useState(null);
+    const [editText, setEditText] = useState("");
 
     useEffect(() => {
         const unsub = subscribeToMessages(activeChannel, (data) => {
@@ -34,6 +38,7 @@ const CommunityDiscussion = () => {
                     } catch(e) { return "--:--"; }
                 })(),
                 isOwn: m.senderId === user?.uid,
+                isEdited: m.isEdited || false,
                 timestamp: (() => {
                     if (!m.timestamp) return new Date().toISOString();
                     return m.timestamp.seconds ? new Date(m.timestamp.seconds * 1000).toISOString() : new Date(m.timestamp).toISOString();
@@ -83,6 +88,20 @@ const CommunityDiscussion = () => {
             await sendMessage(activeChannel, user.uid, text, [user.uid]);
         } catch (err) {
             console.error("Failed to send message", err);
+        }
+    };
+
+    const handleEditMessage = async (msgId) => {
+        if (!editText.trim()) {
+           setEditingMsgId(null);
+           return;
+        }
+        try {
+            await editMessage(activeChannel, msgId, editText);
+            setEditingMsgId(null);
+            setEditText("");
+        } catch (err) {
+            console.error("Failed to edit message", err);
         }
     };
 
@@ -207,9 +226,45 @@ const CommunityDiscussion = () => {
                                                          </span>
                                                      </div>
                                                  )}
-                                                 <div className="text-[13px] text-white/90 font-mono leading-relaxed whitespace-pre-wrap">
-                                                     {msg.text}
-                                                 </div>
+                                                 
+                                                 {editingMsgId === msg.id ? (
+                                                    <div className="mt-1">
+                                                       <div className="flex items-center gap-2 bg-surface border border-white/20 p-2">
+                                                          <input 
+                                                             type="text"
+                                                             autoFocus
+                                                             value={editText}
+                                                             onChange={(e) => setEditText(e.target.value)}
+                                                             onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') handleEditMessage(msg.id);
+                                                                if (e.key === 'Escape') setEditingMsgId(null);
+                                                             }}
+                                                             className="flex-1 bg-transparent border-none text-white focus:outline-none text-sm font-mono tracking-wide"
+                                                          />
+                                                       </div>
+                                                       <div className="text-[10px] text-text-muted uppercase tracking-widest mt-1">
+                                                          escape to <span className="text-white cursor-pointer hover:underline" onClick={() => setEditingMsgId(null)}>cancel</span> • enter to <span className="text-primary cursor-pointer hover:underline" onClick={() => handleEditMessage(msg.id)}>save</span>
+                                                       </div>
+                                                    </div>
+                                                 ) : (
+                                                    <div className="text-[13px] text-white/90 font-mono leading-relaxed whitespace-pre-wrap group-hover:bg-white/5 inline-block pr-8 relative">
+                                                        {msg.text}
+                                                        {msg.isEdited && (
+                                                           <span className="text-[10px] text-text-muted italic ml-2">(edited)</span>
+                                                        )}
+                                                        {msg.isOwn && (
+                                                           <button 
+                                                              onClick={() => {
+                                                                 setEditingMsgId(msg.id);
+                                                                 setEditText(msg.text);
+                                                              }} 
+                                                              className="absolute -right-4 top-0 opacity-0 group-hover:opacity-100 text-text-muted hover:text-primary transition-colors text-[10px] uppercase font-bold"
+                                                           >
+                                                              edit
+                                                           </button>
+                                                        )}
+                                                    </div>
+                                                 )}
                                              </div>
                                          </div>
                                      </motion.div>

@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./studentApp/pages/Login";
 import Register from "./studentApp/pages/Register";
+import ForgotPassword from "./studentApp/pages/ForgotPassword";
 import Dashboard from "./studentApp/pages/Dashboard";
 import GigMarketplace from "./studentApp/pages/GigMarketplace";
 import Applications from "./studentApp/pages/Applications";
@@ -69,6 +70,7 @@ const App = () => (<QueryClientProvider client={queryClient}>
             <Route index element={<Navigate to="login" replace />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
 
             <Route element={<ProtectedRoute />}>
               <Route path="dashboard" element={<Dashboard />} />

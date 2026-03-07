@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, MapPin, Briefcase, GraduationCap, ChevronLeft, Calendar, MessageCircle, ShieldCheck, Zap, Loader2 } from 'lucide-react';
+import { Star, MapPin, Briefcase, GraduationCap, ChevronLeft, Calendar, MessageCircle, ShieldCheck, Zap, Loader2, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
@@ -124,6 +124,24 @@ const MentorProfile = () => {
                                             )}
                                         </div>
                                     </div>
+
+                                    {(mentor.portfolio || mentor.portfolioImage) && (
+                                        <div className="mb-8">
+                                            <h3 className="text-[10px] text-primary uppercase tracking-widest mb-2">Showcase / Work</h3>
+                                            
+                                            {mentor.portfolio && (
+                                              <a href={mentor.portfolio.startsWith('http') ? mentor.portfolio : `https://${mentor.portfolio}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-white hover:text-primary transition-colors text-xs mb-4">
+                                                  <ExternalLink className="w-4 h-4" /> {mentor.portfolio}
+                                              </a>
+                                            )}
+
+                                            {mentor.portfolioImage && (
+                                              <div className="max-h-[300px] w-full overflow-hidden border border-white/10 mt-2 bg-black/40">
+                                                  <img src={mentor.portfolioImage} alt="Portfolio Showcase" className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity" />
+                                              </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Actions */}
                                     <div className="flex flex-col sm:flex-row gap-4">

@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
 
 export const createUserProfile = async (uid, email, role, profileData) => {
   const userRef = doc(db, "users", uid);
@@ -153,4 +153,21 @@ export const getMentors = async () => {
   }
   
   return mentors;
+};
+
+export const deleteUserData = async (uid, role) => {
+  const userRef = doc(db, "users", uid);
+  
+  let roleCollection = "studentProfile";
+  if (role === "recruiter" || role === "Recruiter") {
+    roleCollection = "recruiterProfile";
+  }
+  
+  const roleRef = doc(db, `users/${uid}/${roleCollection}`, "data");
+  
+  // Delete subcollection data
+  await deleteDoc(roleRef);
+  
+  // Delete base user document
+  await deleteDoc(userRef);
 };

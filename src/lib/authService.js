@@ -7,7 +7,12 @@ import {
   sendEmailVerification,
   onAuthStateChanged,
   updatePassword as firebaseUpdatePassword,
-  updateProfile as firebaseUpdateProfile
+  updateProfile as firebaseUpdateProfile,
+  deleteUser as firebaseDeleteUser,
+  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence
 } from "firebase/auth";
 import { auth } from "./firebase";
 import { getUserProfile, createUserProfile } from "./userService";
@@ -47,29 +52,30 @@ export const loginWithEmail = async (email, password) => {
   return userCredential.user;
 };
 
-export const loginWithGoogle = async (role = "student") => {
+export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
   const userCredential = await signInWithPopup(auth, provider);
   const user = userCredential.user;
   
-  // Check if profile exists, if not create one
   try {
     const existingProfile = await getUserProfile(user.uid);
     if (!existingProfile) {
-      await createUserProfile(user.uid, user.email, role, {
-        fullName: user.displayName,
-        photoURL: user.photoURL,
-      });
+       // Profile doesn't exist, throw custom error
+       const error = new Error("profile_missing");
+       error.code = "auth/profile-missing";
+       error.user = user;
+       throw error;
     }
   } catch (error) {
-    if (error.message.includes("does not exist")) {
-        await createUserProfile(user.uid, user.email, role, {
-          fullName: user.displayName,
-          photoURL: user.photoURL,
-        });
-    } else {
-        throw error;
+    if (error.code === "auth/profile-missing" || error.message.includes("does not exist")) {
+        // We know they don't have a profile. 
+        // We pass the error up so the frontend can redirect to /register
+        const missingError = new Error("profile_missing");
+        missingError.code = "auth/profile-missing";
+        missingError.user = user;
+        throw missingError;
     }
+    throw error;
   }
   
   return user;
@@ -95,4 +101,19 @@ export const updateAuthProfile = async (displayName, photoURL) => {
   if (auth.currentUser) {
     await firebaseUpdateProfile(auth.currentUser, { displayName, photoURL });
   }
+};
+
+export const deleteUserAccount = async () => {
+  if (auth.currentUser) {
+    await firebaseDeleteUser(auth.currentUser);
+  }
+};
+
+export const resetPassword = async (email) => {
+  await firebaseSendPasswordResetEmail(auth, email);
+};
+
+export const setAuthPersistence = async (rememberMe) => {
+  const type = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+  await setPersistence(auth, type);
 };

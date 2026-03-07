@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import PostGigModal from '../../components/recruiter/PostGigModal';
 import { subscribeToRecruiterGigs, updateGig } from '../../../lib/gigService';
 import { subscribeToRecruiterApplications } from '../../../lib/applicationService';
+import ManageTeamModal from '../../components/recruiter/ManageTeamModal';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 
@@ -16,6 +17,7 @@ const RecruiterDashboard = () => {
   const [isPostGigOpen, setIsPostGigOpen] = useState(false);
   const [activePostings, setActivePostings] = useState([]);
   const [recentApplications, setRecentApplications] = useState([]);
+  const [manageTeamGig, setManageTeamGig] = useState(null);
 
   useEffect(() => {
     if (user?.uid) {
@@ -179,17 +181,32 @@ const RecruiterDashboard = () => {
                           </select>
                         </div>
                       </div>
-                      <div className="flex justify-between text-[10px] text-text-muted font-mono uppercase">
+                      <div className="flex justify-between text-[10px] text-text-muted font-mono uppercase mt-2">
                         <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                         <span>{post.duration}</span>
                       </div>
+                      
+                      {post.status !== 'hiring' && post.status !== 'open' && (
+                         <div className="mt-4 pt-4 border-t border-white/10">
+                            <button 
+                               onClick={() => setManageTeamGig(post)} 
+                               className="w-full py-2 bg-primary/10 border border-primary/50 text-primary hover:bg-primary hover:text-black font-bold uppercase text-xs tracking-widest transition-colors flex justify-center items-center gap-2"
+                            >
+                               <Users className="w-4 h-4" />
+                               Manage Team ({post.status})
+                            </button>
+                         </div>
+                      )}
                     </div>
                   ))}
                 </div>
 
-                <button className="w-full mt-6 py-2 border border-white/10 text-text-muted hover:text-white hover:border-white transition-colors text-xs uppercase tracking-widest">
+                <Link 
+                  to="/student/gigs" 
+                  className="w-full mt-6 py-2 border border-white/10 text-text-muted hover:text-white hover:border-white transition-colors text-xs uppercase tracking-widest block text-center"
+                >
                   Manage_Micros
-                </button>
+                </Link>
               </motion.div>
             </div>
           </div>
@@ -197,6 +214,10 @@ const RecruiterDashboard = () => {
       </div>
 
       <PostGigModal isOpen={isPostGigOpen} onClose={() => setIsPostGigOpen(false)} />
+      
+      {manageTeamGig && (
+         <ManageTeamModal isOpen={!!manageTeamGig} onClose={() => setManageTeamGig(null)} gig={manageTeamGig} />
+      )}
     </div>
   );
 };

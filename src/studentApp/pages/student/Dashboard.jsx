@@ -6,16 +6,20 @@ import Sidebar from '../../components/Sidebar';
 import { useAuthStore } from '../../store/authStore';
 import { subscribeToGigs } from '../../../lib/gigService';
 import { subscribeToStudentApplications, applyForGig } from '../../../lib/applicationService';
+import { updateUserProfile } from '../../../lib/userService';
 import toast from 'react-hot-toast';
 
 const StudentDashboard = () => {
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [recommendedGigs, setRecommendedGigs] = useState([]);
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
     if (user?.uid) {
-      const unsubGigs = subscribeToGigs((data) => setRecommendedGigs(data.slice(0, 5)));
+      const unsubGigs = subscribeToGigs((data) => {
+         const nonArchived = data.filter(gig => !user?.archivedGigs?.includes(gig.id));
+         setRecommendedGigs(nonArchived.slice(0, 5));
+      });
       const unsubApps = subscribeToStudentApplications(user.uid, setApplications);
       return () => {
         unsubGigs();
@@ -44,6 +48,31 @@ const StudentDashboard = () => {
     } catch (err) {
       toast.error('APPLICATION FAILED: ' + err.message);
     }
+  };
+
+  const handleToggleArchive = async (gigId) => {
+     if (!user?.uid) return;
+     const currentArchived = user.archivedGigs || [];
+     const isArchived = currentArchived.includes(gigId);
+     
+     let newArchived;
+     if (isArchived) {
+        newArchived = currentArchived.filter(id => id !== gigId);
+     } else {
+        newArchived = [...currentArchived, gigId];
+     }
+     
+     try {
+        await updateUserProfile(user.uid, { archivedGigs: newArchived });
+        updateUser({ archivedGigs: newArchived });
+        if (isArchived) {
+           toast.success("Protocol removed from archives.");
+        } else {
+           toast.success("Protocol archived successfully.");
+        }
+     } catch (err) {
+        toast.error("Failed to update archive status.");
+     }
   };
 
   const activities = [
@@ -164,8 +193,15 @@ const StudentDashboard = () => {
                           >
                             Apply
                           </button>
-                          <button className="px-4 py-2 border border-white/20 text-white hover:border-white transition-colors text-xs uppercase">
-                            Archive
+                          <button 
+                             onClick={() => handleToggleArchive(gig.id)}
+                             className={`px-4 py-2 border text-xs uppercase transition-colors ${
+                                user?.archivedGigs?.includes(gig.id) 
+                                   ? 'bg-primary/10 border-primary text-primary hover:bg-transparent hover:text-white hover:border-white/20' 
+                                   : 'bg-transparent border-white/20 text-white hover:border-primary hover:text-primary'
+                             }`}
+                          >
+                            {user?.archivedGigs?.includes(gig.id) ? 'Archived' : 'Archive'}
                           </button>
                         </div>
                       </div>

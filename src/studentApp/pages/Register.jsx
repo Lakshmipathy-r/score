@@ -6,16 +6,26 @@ import {
    CheckCircle, ArrowRight, ArrowLeft, Hexagon, Shield, Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLocation } from 'react-router-dom';
 import { registerWithEmail, sendVerification } from '../../lib/authService';
+import { createUserProfile, getUserProfile } from '../../lib/userService';
+import { useAuthStore } from '../store/authStore';
+import { auth } from '../../lib/firebase';
 
 const Register = () => {
    const navigate = useNavigate();
-   const [currentStep, setCurrentStep] = useState(1);
+   const { setUser } = useAuthStore();
+   const location = useLocation();
+   const googleUser = location.state?.googleUser || null;
+   const preselectedRole = location.state?.preselectedRole || '';
+   const isGoogleAuth = !!googleUser;
+   
+   const [currentStep, setCurrentStep] = useState(isGoogleAuth ? 2 : 1);
    const [isLoading, setIsLoading] = useState(false);
    const [formData, setFormData] = useState({
-      accountType: '',
-      fullName: '',
-      email: '',
+      accountType: isGoogleAuth ? preselectedRole : '',
+      fullName: isGoogleAuth ? googleUser.displayName || '' : '',
+      email: isGoogleAuth ? googleUser.email || '' : '',
       password: '',
       confirmPassword: '',
       institution: '',
@@ -60,15 +70,44 @@ const Register = () => {
       // The old form had 5 steps, but we'll submit everything at the end of Step 4 (Profile Setup)
       // Step 5 is just a verification screen.
       if (currentStep === 4) {
-         if (formData.password !== formData.confirmPassword) {
+         if (!isGoogleAuth && formData.password !== formData.confirmPassword) {
             toast.error('PASSWORDS DO NOT MATCH');
             return;
          }
          setIsLoading(true);
          try {
-            await registerWithEmail(formData.email, formData.password, formData.accountType, formData);
-            toast.success('PROFILE CREATED. CHECK EMAIL.');
-            nextStep();
+            if (isGoogleAuth) {
+               // Google user already exists in Auth, just create the Firestore profile
+               await createUserProfile(googleUser.uid, googleUser.email, formData.accountType, {
+                  ...formData,
+                  photoURL: googleUser.photoURL,
+               });
+               
+               // Fetch and update the global store with the new complete profile
+               try {
+                  const newProfile = await getUserProfile(googleUser.uid);
+                  setUser({ ...auth.currentUser, ...newProfile });
+               } catch (e) {
+                  console.error("Failed to sync new profile to store", e);
+               }
+
+               toast.success('PROFILE INITIALIZED SUCCESSFULLY.');
+               setTimeout(() => navigate(formData.accountType === 'Recruiter' || formData.accountType === 'Alumni/Mentor' ? '/mentor-dashboard' : '/student/dashboard'), 1500);
+            } else {
+               // Normal Email Registration
+               await registerWithEmail(formData.email, formData.password, formData.accountType, formData);
+               toast.success('PROFILE CREATED. CHECK EMAIL.');
+               
+               // Fetch and update the global store with the new complete profile
+               try {
+                  const newProfile = await getUserProfile(auth.currentUser.uid);
+                  setUser({ ...auth.currentUser, ...newProfile });
+               } catch (e) {
+                  console.error("Failed to sync new profile to store", e);
+               }
+               
+               nextStep();
+            }
          } catch (error) {
             toast.error('REGISTRATION FAILED: ' + error.message);
          } finally {
@@ -225,7 +264,7 @@ const Register = () => {
                                        value={formData.fullName}
                                        onChange={handleChange}
                                        placeholder="IDENTIFIER..."
-                                       className="w-full bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono uppercase"
+                                       className={`w-full bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono uppercase ${isGoogleAuth ? 'opacity-50 cursor-not-allowed' : ''}`}
                                        required
                                     />
                                  </div>
@@ -242,49 +281,52 @@ const Register = () => {
                                        name="email"
                                        value={formData.email}
                                        onChange={handleChange}
+                                       disabled={isGoogleAuth}
                                        placeholder="USER@HOST.EDU"
-                                       className="w-full bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono uppercase"
+                                       className={`w-full bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono uppercase ${isGoogleAuth ? 'opacity-50 cursor-not-allowed' : ''}`}
                                        required
                                     />
                                  </div>
                               </div>
 
-                              <div className="grid grid-cols-2 gap-4">
-                                 <div className="group">
-                                    <label className="block text-[10px] uppercase tracking-widest text-text-muted mb-2 group-focus-within:text-primary transition-colors">
-                                       Pass_Key
-                                    </label>
-                                    <div className="relative">
-                                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                       <input
-                                          type="password"
-                                          name="password"
-                                          value={formData.password}
-                                          onChange={handleChange}
-                                          placeholder="******"
-                                          className="w-full bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono"
-                                          required
-                                       />
+                              {!isGoogleAuth && (
+                                 <div className="grid grid-cols-2 gap-4">
+                                    <div className="group">
+                                       <label className="block text-[10px] uppercase tracking-widest text-text-muted mb-2 group-focus-within:text-primary transition-colors">
+                                          Pass_Key
+                                       </label>
+                                       <div className="relative">
+                                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                          <input
+                                             type="password"
+                                             name="password"
+                                             value={formData.password}
+                                             onChange={handleChange}
+                                             placeholder="******"
+                                             className="w-full bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono"
+                                             required
+                                          />
+                                       </div>
+                                    </div>
+                                    <div className="group">
+                                       <label className="block text-[10px] uppercase tracking-widest text-text-muted mb-2 group-focus-within:text-primary transition-colors">
+                                          Confirm_Key
+                                       </label>
+                                       <div className="relative">
+                                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                          <input
+                                             type="password"
+                                             name="confirmPassword"
+                                             value={formData.confirmPassword}
+                                             onChange={handleChange}
+                                             placeholder="******"
+                                             className="w-full bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono"
+                                             required
+                                          />
+                                       </div>
                                     </div>
                                  </div>
-                                 <div className="group">
-                                    <label className="block text-[10px] uppercase tracking-widest text-text-muted mb-2 group-focus-within:text-primary transition-colors">
-                                       Confirm_Key
-                                    </label>
-                                    <div className="relative">
-                                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                       <input
-                                          type="password"
-                                          name="confirmPassword"
-                                          value={formData.confirmPassword}
-                                          onChange={handleChange}
-                                          placeholder="******"
-                                          className="w-full bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono"
-                                          required
-                                       />
-                                    </div>
-                                 </div>
-                              </div>
+                              )}
                            </div>
                         </motion.div>
                      )}

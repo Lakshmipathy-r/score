@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Terminal, Cpu, Zap, Shield, ArrowRight, Loader2 } from 'lucide-react';
-import { loginWithEmail, loginWithGoogle } from '../../lib/authService';
+import { Eye, EyeOff, Terminal, Cpu, Zap, Shield, ArrowRight, Loader2, Check } from 'lucide-react';
+import { loginWithEmail, loginWithGoogle, setAuthPersistence } from '../../lib/authService';
 import { getUserProfile } from '../../lib/userService';
 import toast from 'react-hot-toast';
 
@@ -15,6 +15,7 @@ const Login = () => {
     password: '',
     role: 'student' // Default role
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -33,6 +34,7 @@ const Login = () => {
     if (formData.email && formData.password) {
       setIsLoading(true);
       try {
+        await setAuthPersistence(rememberMe);
         const user = await loginWithEmail(formData.email, formData.password);
         let profile = null;
         try {
@@ -86,13 +88,17 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      const user = await loginWithGoogle(formData.role);
+      await setAuthPersistence(rememberMe);
+      const user = await loginWithGoogle();
+      
+      // If we get here, it means they ALREADY had a Firestore profile
       let profile = null;
       try {
         profile = await getUserProfile(user.uid);
       } catch (e) {
         console.error(e);
       }
+      
       const role = (profile && profile.role) || formData.role;
 
       toast.success('ACCESS GRANTED', {
@@ -110,15 +116,40 @@ const Login = () => {
         navigate('/student/dashboard');
       }
     } catch (error) {
-      toast.error('AUTH FAILED: ' + error.message, {
-        style: {
-          background: '#000',
-          border: '1px solid #ff003c',
-          color: '#ff003c',
-          fontFamily: 'monospace',
-        },
-        icon: '🟥',
-      });
+       if (error.code === 'auth/profile-missing' || error.message === 'profile_missing') {
+          // This is a NEW user from Google Auth who doesn't have a Firestore profile yet.
+          // Route them to the registration flow and pass along their Google data
+          toast.success('GOOGLE AUTHENTICATION SUCCESSFUL. PLEASE COMPLETE REGISTRATION.', {
+             style: {
+                background: '#000',
+                border: '1px solid #ccff00',
+                color: '#ccff00',
+                fontFamily: 'monospace',
+             },
+             icon: '🟩',
+          });
+          navigate('/student/register', { 
+            state: { 
+              googleUser: {
+                uid: error.user.uid,
+                email: error.user.email,
+                displayName: error.user.displayName,
+                photoURL: error.user.photoURL
+              },
+              preselectedRole: formData.role === 'recruiter' ? 'Recruiter' : formData.role === 'mentor' ? 'Alumni/Mentor' : 'College Student'
+            } 
+          });
+       } else {
+          toast.error('AUTH FAILED: ' + error.message, {
+            style: {
+              background: '#000',
+              border: '1px solid #ff003c',
+              color: 'ff003c',
+              fontFamily: 'monospace',
+            },
+            icon: '🟥',
+          });
+       }
     } finally {
       setIsLoading(false);
     }
@@ -310,9 +341,9 @@ const Login = () => {
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <label className="flex items-center space-x-2 cursor-pointer group">
-                <div className="w-4 h-4 border border-white/30 group-hover:border-primary flex items-center justify-center transition-colors">
-                  <div className="w-2 h-2 bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <label className="flex items-center space-x-2 cursor-pointer group" onClick={() => setRememberMe(!rememberMe)}>
+                <div className={`w-4 h-4 border flex items-center justify-center transition-colors ${rememberMe ? 'border-primary' : 'border-white/30 group-hover:border-primary'}`}>
+                  {rememberMe && <Check className="w-3 h-3 text-primary" />}
                 </div>
                 <span className="text-xs text-text-muted group-hover:text-white transition-colors uppercase tracking-wider">Remember_Me</span>
               </label>

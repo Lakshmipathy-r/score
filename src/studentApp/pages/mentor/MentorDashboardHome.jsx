@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import { useAuthStore } from '../../store/authStore';
 import { motion } from 'framer-motion';
+import { getDoubts } from '../../../lib/doubtService';
+import { getConversations } from '../../../lib/messageService';
+import { getUserProfile } from '../../../lib/userService';
 import {
     Users,
     MessageSquare,
@@ -22,13 +25,44 @@ import {
 const MentorDashboardHome = () => {
     const { user } = useAuthStore();
 
-    // Mock Data for Analytics
-    const stats = {
-        totalSessions: 24,
-        totalStudentsMentored: 18,
-        communityRepliesCount: 45,
-        uplinksReceived: 112
-    };
+    const [stats, setStats] = useState({
+        totalSessions: 0,
+        totalStudentsMentored: 0,
+        communityRepliesCount: 0,
+        uplinksReceived: 0
+    });
+
+    useEffect(() => {
+        const fetchRealtimeStats = async () => {
+            if (!user?.uid) return;
+            try {
+                // Fetch conversations to simulate "sessions" and "mentored students"
+                const convos = await getConversations(user.uid);
+                
+                // Fetch doubts to count replies
+                const doubts = await getDoubts(user.uid);
+                let repliesCount = 0;
+                doubts.forEach(d => {
+                    if (d.replies && Array.isArray(d.replies)) {
+                        repliesCount += d.replies.filter(r => r.userId === user.uid).length;
+                    }
+                });
+                
+                // Fetch user profile for uplinks/rating
+                const profile = await getUserProfile(user.uid);
+                
+                setStats({
+                    totalSessions: convos.length,
+                    totalStudentsMentored: convos.length,
+                    communityRepliesCount: repliesCount,
+                    uplinksReceived: profile.rating || profile.uplinks || 0
+                });
+            } catch (err) {
+                console.error("Failed to fetch mentor stats:", err);
+            }
+        };
+        fetchRealtimeStats();
+    }, [user?.uid]);
 
     // Lightweight Mentor Impact Score
     // computed dynamically: (sessionsCount * 5) + (communityRepliesCount * 2) + (uplinksReceived * 1)
@@ -41,7 +75,7 @@ const MentorDashboardHome = () => {
         { id: 2, action: "Completed Session", topic: "Next.js Authentication", time: "1 day ago" }
     ];
 
-    const [isAvailable, setIsAvailable] = React.useState(user?.isAvailable ?? true);
+    const [isAvailable, setIsAvailable] = useState(user?.isAvailable ?? true);
 
     const toggleAvailability = () => {
         setIsAvailable(!isAvailable);

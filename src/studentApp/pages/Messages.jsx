@@ -4,7 +4,7 @@ import { Send, Paperclip, Smile, MoreVertical, Phone, Video, Search, Shield, Zap
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { useAuthStore } from "../store/authStore";
-import { subscribeToConversations, subscribeToMessages, sendMessage } from "../../lib/messageService";
+import { subscribeToConversations, subscribeToMessages, sendMessage, editMessage } from "../../lib/messageService";
 import { getUserProfile } from "../../lib/userService";
 
 const nameCache = {};
@@ -15,6 +15,8 @@ const Messages = () => {
    const [activeChat, setActiveChat] = useState(null);
    const [messages, setMessages] = useState([]);
    const [newMessage, setNewMessage] = useState("");
+   const [editingMsgId, setEditingMsgId] = useState(null);
+   const [editText, setEditText] = useState("");
 
    useEffect(() => {
      if (user?.uid) {
@@ -69,7 +71,8 @@ const Messages = () => {
                sender: m.senderId === user.uid ? 'me' : m.senderId,
                text: m.text,
                time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-               isOwn: m.senderId === user.uid
+               isOwn: m.senderId === user.uid,
+               isEdited: m.isEdited || false
             }));
             setMessages(mappedMessages);
          });
@@ -90,6 +93,20 @@ const Messages = () => {
          await sendMessage(activeChat, user.uid, text);
       } catch (err) {
          console.error("Failed to send message", err);
+      }
+   };
+
+   const handleEditMessage = async (msgId) => {
+      if (!editText.trim() || !activeChat) {
+         setEditingMsgId(null);
+         return;
+      }
+      try {
+         await editMessage(activeChat, msgId, editText);
+         setEditingMsgId(null);
+         setEditText("");
+      } catch (err) {
+         console.error("Failed to edit message", err);
       }
    };
 
@@ -207,15 +224,54 @@ const Messages = () => {
                            className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'}`}
                         >
                            <div className={`max-w-[70%] relative group`}>
-                              <div className={`
-                            px-4 py-3 text-sm font-mono border
-                            ${msg.isOwn
-                                    ? 'bg-primary/10 border-primary text-white clip-diagonal-reverse'
-                                    : 'bg-surface border-white/20 text-text-muted clip-diagonal'
-                                 }
-                         `}>
-                                 {msg.text}
-                              </div>
+                              {editingMsgId === msg.id ? (
+                                 <div className={`
+                                     px-4 py-3 text-sm font-mono border
+                                     ${msg.isOwn
+                                             ? 'bg-primary/10 border-primary text-white clip-diagonal-reverse'
+                                             : 'bg-surface border-white/20 text-text-muted clip-diagonal'
+                                          }
+                                  `}>
+                                     <input 
+                                        type="text"
+                                        autoFocus
+                                        value={editText}
+                                        onChange={(e) => setEditText(e.target.value)}
+                                        onKeyDown={(e) => {
+                                           if (e.key === 'Enter') handleEditMessage(msg.id);
+                                           if (e.key === 'Escape') setEditingMsgId(null);
+                                        }}
+                                        className="w-full bg-transparent border-none focus:outline-none text-white font-mono tracking-wide"
+                                     />
+                                     <div className="text-[10px] uppercase tracking-widest mt-2 text-right opacity-70">
+                                        esc to cancel • enter to save
+                                     </div>
+                                 </div>
+                              ) : (
+                                  <div className={`
+                                px-4 py-3 text-sm font-mono border relative pr-8
+                                ${msg.isOwn
+                                        ? 'bg-primary/10 border-primary text-white clip-diagonal-reverse'
+                                        : 'bg-surface border-white/20 text-text-muted clip-diagonal'
+                                     }
+                             `}>
+                                     {msg.text}
+                                     {msg.isEdited && (
+                                        <span className="text-[10px] text-zinc-500 italic ml-2">(edited)</span>
+                                     )}
+                                     {msg.isOwn && (
+                                        <button 
+                                           onClick={() => {
+                                              setEditingMsgId(msg.id);
+                                              setEditText(msg.text);
+                                           }}
+                                           className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-white/50 hover:text-primary transition-colors text-[10px] uppercase font-bold"
+                                        >
+                                           edit
+                                        </button>
+                                     )}
+                                  </div>
+                              )}
                               <div className={`
                             text-[10px] mt-1 opacity-50 uppercase tracking-widest
                             ${msg.isOwn ? 'text-right text-primary' : 'text-left text-text-muted'}

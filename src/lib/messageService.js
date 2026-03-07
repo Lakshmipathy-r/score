@@ -74,3 +74,13 @@ export const sendMessage = async (conversationId, senderId, text, participants =
   const messagesRef = collection(db, `conversations/${conversationId}/messages`);
   await addDoc(messagesRef, msgData);
 };
+
+export const editMessage = async (conversationId, messageId, newText) => {
+  const msgRef = doc(db, `conversations/${conversationId}/messages`, messageId);
+  await updateDoc(msgRef, {
+    text: newText,
+    isEdited: true,
+    updatedAt: new Date().toISOString()
+  });
+};
+

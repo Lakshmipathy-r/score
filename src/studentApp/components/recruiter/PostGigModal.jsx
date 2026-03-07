@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Briefcase, DollarSign, Clock, Hash, Code, Save, Zap, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
-import { createGig } from '../../../lib/gigService';
+import { createGig, updateGig } from '../../../lib/gigService';
 
-const PostGigModal = ({ isOpen, onClose }) => {
+const PostGigModal = ({ isOpen, onClose, initialData }) => {
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -15,8 +15,29 @@ const PostGigModal = ({ isOpen, onClose }) => {
     skills: '',
     budget: '',
     duration: '1 Month',
-    type: 'Project', // Project, Internship, Full-time
+    type: 'Project',
   });
+
+  // Load initial data for edits
+  React.useEffect(() => {
+    if (initialData && isOpen) {
+       setFormData({
+          ...initialData,
+          skills: Array.isArray(initialData.skills) ? initialData.skills.join(', ') : (initialData.skills || '')
+       });
+    } else if (isOpen) {
+       // reset
+       setFormData({
+          title: '',
+          description: '',
+          role: '',
+          skills: '',
+          budget: '',
+          duration: '1 Month',
+          type: 'Project',
+       });
+    }
+  }, [initialData, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,26 +53,39 @@ const PostGigModal = ({ isOpen, onClose }) => {
       // Split skills string into array
       const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(s => s);
       
-      await createGig({
-        title: formData.title,
-        description: formData.description,
-        type: formData.type,
-        budget: formData.budget,
-        duration: formData.duration,
-        skills: skillsArray,
-        postedBy: user.uid,
-        recruiterName: user.name || user.email,
-        company: user.company || user.institution || "Unknown Company", // pulled from context if available
-        applicants: 0
-      });
+      if (initialData?.id) {
+         // Update existing
+         await updateGig(initialData.id, {
+            title: formData.title,
+            description: formData.description,
+            type: formData.type,
+            budget: formData.budget,
+            duration: formData.duration,
+            skills: skillsArray,
+         });
+         toast.success("PROTOCOL_UPDATED: Gig updated successfully!", {
+             style: { background: '#000', color: '#CCFF00', border: '1px solid #CCFF00' }
+         });
+      } else {
+         // Create new
+         await createGig({
+            title: formData.title,
+            description: formData.description,
+            type: formData.type,
+            budget: formData.budget,
+            duration: formData.duration,
+            skills: skillsArray,
+            postedBy: user.uid,
+            recruiterName: user.name || user.email,
+            company: user.company || user.institution || "Unknown Company",
+            applicants: 0
+         });
+         toast.success("PROTOCOL_INITIATED: New gig posted successfully!", {
+             style: { background: '#000', color: '#CCFF00', border: '1px solid #CCFF00' }
+         });
+      }
       
-      toast.success("PROTOCOL_INITIATED: New gig posted successfully!", {
-          style: {
-              background: '#000',
-              color: '#CCFF00',
-              border: '1px solid #CCFF00'
-          }
-      });
+
 
       onClose();
       setFormData({
@@ -91,7 +125,7 @@ const PostGigModal = ({ isOpen, onClose }) => {
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10 bg-gradient-to-r from-primary/5 to-transparent">
                <h2 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-primary" /> Post_New_Protocol
+                  <Zap className="w-5 h-5 text-primary" /> {initialData?.id ? 'Edit_Protocol' : 'Post_New_Protocol'}
                </h2>
                <button onClick={onClose} className="text-text-muted hover:text-white transition-colors">
                   <X className="w-5 h-5" />
@@ -212,7 +246,7 @@ const PostGigModal = ({ isOpen, onClose }) => {
                      className="px-6 py-3 bg-primary text-black font-bold uppercase tracking-wider hover:bg-white transition-colors text-xs flex items-center gap-2 disabled:opacity-50"
                   >
                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                     {isLoading ? 'Initiating...' : 'Initiate_Protocol'}
+                     {isLoading ? 'Processing...' : (initialData?.id ? 'Update_Protocol' : 'Initiate_Protocol')}
                   </button>
                </div>
 

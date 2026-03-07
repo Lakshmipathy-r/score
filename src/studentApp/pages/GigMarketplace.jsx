@@ -4,26 +4,38 @@ import { Search, Filter, Briefcase, DollarSign, Clock, MapPin, Bookmark, Zap, Gl
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import { useAuthStore } from '../store/authStore';
-import { subscribeToGigs } from '../../lib/gigService';
+import { subscribeToGigs, subscribeToRecruiterGigs, deleteGig } from '../../lib/gigService';
+import { updateUserProfile } from '../../lib/userService';
 import { applyForGig } from '../../lib/applicationService';
+import { Edit2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PostGigModal from '../components/recruiter/PostGigModal';
+import GigDetailsModal from '../components/GigDetailsModal';
 
 const GigMarketplace = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPostGigOpen, setIsPostGigOpen] = useState(false);
-  const categories = ['ALL_NODES', 'WEB_DEV', 'DESIGN_SYS', 'CONTENT_GEN', 'MARKETING_OPS', 'DATA_MINING'];
+  const [gigToEdit, setGigToEdit] = useState(null);
+  const [selectedGigToInspect, setSelectedGigToInspect] = useState(null);
+  const categories = ['ALL_NODES', 'WEB_DEV', 'DESIGN_SYS', 'CONTENT_GEN', 'MARKETING_OPS', 'DATA_MINING', 'ARCHIVED'];
 
-
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const isStudent = user && !['mentor', 'alumni/mentor', 'recruiter'].includes(user?.role?.toLowerCase());
+  const isMentor = user?.role?.toLowerCase() === 'mentor' || user?.role?.toLowerCase() === 'alumni/mentor';
   const [gigs, setGigs] = useState([]);
 
   useEffect(() => {
-    const unsub = subscribeToGigs((data) => setGigs(data));
-    return () => unsub();
-  }, []);
+    let unsub;
+    if (isMentor && user?.uid) {
+      unsub = subscribeToRecruiterGigs(user.uid, (data) => setGigs(data));
+    } else {
+      unsub = subscribeToGigs((data) => setGigs(data));
+    }
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [isMentor, user?.uid]);
 
   const handleApply = async (gig) => {
     if (!user) return;
@@ -40,6 +52,69 @@ const GigMarketplace = () => {
       toast.error('APPLICATION FAILED: ' + err.message);
     }
   };
+  const handleDeleteGig = async (gigId) => {
+    if (window.confirm("Are you sure you want to delete this protocol completely?")) {
+      try {
+        await deleteGig(gigId);
+        toast.success("Protocol purged from mainframes.");
+      } catch(err) {
+        toast.error("Failed to purge protocol: " + err.message);
+      }
+    }
+  };
+
+  const handleEditClick = (gig) => {
+      setGigToEdit(gig);
+      setIsPostGigOpen(true);
+  };
+
+  const handleToggleArchive = async (gigId) => {
+     if (!user?.uid) return;
+     const currentArchived = user.archivedGigs || [];
+     const isArchived = currentArchived.includes(gigId);
+     
+     let newArchived;
+     if (isArchived) {
+        newArchived = currentArchived.filter(id => id !== gigId);
+     } else {
+        newArchived = [...currentArchived, gigId];
+     }
+     
+     try {
+        await updateUserProfile(user.uid, { archivedGigs: newArchived });
+        updateUser({ archivedGigs: newArchived });
+        if (isArchived) {
+           toast.success("Protocol removed from archives.");
+        } else {
+           toast.success("Protocol archived successfully.");
+        }
+     } catch (err) {
+        toast.error("Failed to update archive status.");
+     }
+  };
+
+  const displayedGigs = gigs.filter(gig => {
+     let matchesSearch = true;
+     if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        matchesSearch = gig.title?.toLowerCase().includes(query) || 
+           gig.company?.toLowerCase().includes(query) ||
+           (gig.skills && gig.skills.some(s => s.toLowerCase().includes(query)));
+     }
+     if (!matchesSearch) return false;
+
+     if (selectedCategory === 'archived') {
+        return user?.archivedGigs?.includes(gig.id);
+     }
+     
+     if (user?.archivedGigs?.includes(gig.id)) {
+        return false;
+     }
+     
+     // Fallback for other categories (future proofing)
+     return true;
+  });
+
   return (
     <div className="min-h-screen bg-background font-mono selection:bg-primary selection:text-black flex flex-col">
       <Navbar />
@@ -55,7 +130,11 @@ const GigMarketplace = () => {
               <p className="text-primary text-xs uppercase tracking-widest">Marketplace v3.0</p>
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mb-8 shadow-neon">
-              GLOBAL_GIG_<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-cyan-400 animate-gradient-x">MARKETPLACE</span>
+              {isMentor ? (
+                <>MY_POSTED_<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-cyan-400 animate-gradient-x">GIGS</span></>
+              ) : (
+                <>GLOBAL_GIG_<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-cyan-400 animate-gradient-x">MARKETPLACE</span></>
+              )}
             </h1>
 
             {/* Search and Filter */}
@@ -103,7 +182,11 @@ const GigMarketplace = () => {
 
             {/* Gig Cards */}
             <div className="space-y-4">
-              {gigs.map((gig, index) => (
+              {displayedGigs.length === 0 ? (
+                 <div className="text-center py-12 text-text-muted border border-dashed border-white/10 uppercase font-bold tracking-widest text-sm">
+                    No protocols found matching criteria.
+                 </div>
+              ) : displayedGigs.map((gig, index) => (
                 <motion.div
                   key={gig.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -154,14 +237,50 @@ const GigMarketplace = () => {
 
                     <div className="flex flex-col gap-3 w-full md:w-auto mt-4 md:mt-0">
                       {isStudent && (
-                        <button 
-                          onClick={() => handleApply(gig)}
-                          className="px-8 py-3 bg-white text-black font-bold uppercase text-xs hover:bg-primary transition-colors clip-diagonal"
-                        >
-                          Accept_Contract
-                        </button>
+                        <div className="flex flex-col gap-2 w-full">
+                           <button 
+                             onClick={() => handleApply(gig)}
+                             className="w-full px-8 py-3 bg-white text-black font-bold uppercase text-xs hover:bg-primary transition-colors clip-diagonal"
+                           >
+                             Accept_Contract
+                           </button>
+                           <button 
+                             onClick={() => handleToggleArchive(gig.id)}
+                             className={`w-full px-8 py-3 border font-bold uppercase text-xs transition-colors flex items-center justify-center gap-2 ${
+                                user?.archivedGigs?.includes(gig.id) 
+                                   ? 'bg-primary/10 border-primary text-primary hover:bg-transparent hover:text-white hover:border-white/20' 
+                                   : 'bg-transparent border-white/20 text-white hover:border-primary hover:text-primary'
+                             }`}
+                           >
+                             <Bookmark className="w-4 h-4" /> 
+                             {user?.archivedGigs?.includes(gig.id) ? 'Archived' : 'Archive'}
+                           </button>
+                        </div>
                       )}
-                      <button className="px-8 py-3 border border-white/20 text-white font-bold uppercase text-xs hover:border-white transition-colors">
+                      
+                      {gig.postedBy === user?.uid && (
+                        <div className="flex gap-2 w-full justify-end">
+                          <button 
+                            onClick={() => handleEditClick(gig)}
+                            className="flex-1 py-3 px-4 border border-white/20 text-white font-bold uppercase text-xs hover:text-primary hover:border-primary transition-colors flex items-center justify-center gap-2"
+                            title="Edit Protocol"
+                          >
+                            <Edit2 className="w-4 h-4" /> Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteGig(gig.id)}
+                            className="flex-1 py-3 px-4 border border-white/20 text-red-400 font-bold uppercase text-xs hover:bg-red-500/10 hover:border-red-500 transition-colors flex items-center justify-center gap-2"
+                            title="Delete Protocol"
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete
+                          </button>
+                        </div>
+                      )}
+
+                      <button 
+                        onClick={() => setSelectedGigToInspect(gig)}
+                        className="px-8 py-3 border border-white/20 text-white font-bold uppercase text-xs hover:border-white transition-colors mt-2"
+                      >
                         Inspect_Details
                       </button>
                     </div>
@@ -173,7 +292,25 @@ const GigMarketplace = () => {
         </main>
       </div>
 
-      <PostGigModal isOpen={isPostGigOpen} onClose={() => setIsPostGigOpen(false)} />
+      <PostGigModal 
+         isOpen={isPostGigOpen} 
+         initialData={gigToEdit}
+         onClose={() => {
+            setIsPostGigOpen(false);
+            setGigToEdit(null);
+         }} 
+      />
+      
+      {/* Detail Inspection Modal */}
+      {selectedGigToInspect && (
+        <GigDetailsModal
+          isOpen={!!selectedGigToInspect}
+          onClose={() => setSelectedGigToInspect(null)}
+          gig={selectedGigToInspect}
+          onApply={handleApply}
+          isStudent={isStudent}
+        />
+      )}
     </div>
   );
 };

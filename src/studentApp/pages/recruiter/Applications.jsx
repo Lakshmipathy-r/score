@@ -9,6 +9,7 @@ import { subscribeToRecruiterApplications, updateApplicationStatus } from '../..
 import { getUserProfile } from '../../../lib/userService';
 import { getGigById } from '../../../lib/gigService';
 import toast from 'react-hot-toast';
+import MandatoryReviewModal from '../../components/recruiter/ReviewModal';
 
 const nameCache = {};
 const gigCache = {};
@@ -16,6 +17,7 @@ const gigCache = {};
 const RecruiterApplications = () => {
   const { user } = useAuthStore();
   const [applicants, setApplicants] = useState([]);
+  const [reviewModalData, setReviewModalData] = useState(null);
 
   useEffect(() => {
     if (user?.uid) {
@@ -74,6 +76,14 @@ const RecruiterApplications = () => {
     } catch (error) {
       toast.error('Failed to update: ' + error.message);
     }
+  };
+
+  const handleOpenReview = (applicant) => {
+    setReviewModalData({
+        applicant,
+        gigId: applicant.gigId,
+        gigTitle: applicant.resolvedGigTitle
+    });
   };
 
   return (
@@ -158,6 +168,16 @@ const RecruiterApplications = () => {
                                 </button>
                               </>
                             )}
+                            {applicant.status === 'accepted' && (
+                               <button 
+                                  onClick={() => handleOpenReview(applicant)} 
+                                  className="p-2 border border-primary/50 text-black bg-primary/20 hover:bg-primary transition-colors flex items-center gap-2" 
+                                  title="Mark Completed"
+                               >
+                                  <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">Mark Completed</span>
+                                  <Check className="w-4 h-4" />
+                               </button>
+                            )}
                          </div>
                       </div>
                    </div>
@@ -167,6 +187,16 @@ const RecruiterApplications = () => {
 
         </main>
       </div>
+
+      {reviewModalData && (
+         <MandatoryReviewModal 
+            isOpen={!!reviewModalData}
+            onClose={() => setReviewModalData(null)}
+            applicant={reviewModalData.applicant}
+            gigId={reviewModalData.gigId}
+            gigTitle={reviewModalData.gigTitle}
+         />
+      )}
     </div>
   );
 };
