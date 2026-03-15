@@ -117,7 +117,7 @@ const MentorDashboardHome = () => {
 
                         {/* Analytics Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <div className="bg-surface border border-white/10 p-6 flex flex-col hover:border-primary/30 transition-all group">
+                            <div className="bg-surface border border-white/10 p-6 flex flex-col hover:bg-primary/10 hover:border-primary/30 transition-all group">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-primary text-xs uppercase tracking-widest font-bold">Total Sessions</h3>
                                     <Calendar className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors" />
@@ -125,7 +125,7 @@ const MentorDashboardHome = () => {
                                 <div className="text-3xl text-white font-bold">{stats.totalSessions}</div>
                             </div>
 
-                            <div className="bg-surface border border-white/10 p-6 flex flex-col hover:border-cyan-400/30 transition-all group">
+                            <div className="bg-surface border border-white/10 p-6 flex flex-col hover:bg-cyan-400/10 hover:border-cyan-400/30 transition-all group">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-cyan-400 text-xs uppercase tracking-widest font-bold">Students Mentored</h3>
                                     <Users className="w-4 h-4 text-text-muted group-hover:text-cyan-400 transition-colors" />
@@ -133,7 +133,7 @@ const MentorDashboardHome = () => {
                                 <div className="text-3xl text-white font-bold">{stats.totalStudentsMentored}</div>
                             </div>
 
-                            <div className="bg-surface border border-white/10 p-6 flex flex-col hover:border-purple-400/30 transition-all group">
+                            <div className="bg-surface border border-white/10 p-6 flex flex-col hover:bg-purple-400/10 hover:border-purple-400/30 transition-all group">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-purple-400 text-xs uppercase tracking-widest font-bold">Community Qs</h3>
                                     <MessageSquare className="w-4 h-4 text-text-muted group-hover:text-purple-400 transition-colors" />
@@ -141,7 +141,7 @@ const MentorDashboardHome = () => {
                                 <div className="text-3xl text-white font-bold">{stats.communityRepliesCount}</div>
                             </div>
 
-                            <div className="bg-surface border border-white/10 p-6 flex flex-col hover:border-primary/30 transition-all group">
+                            <div className="bg-surface border border-white/10 p-6 flex flex-col hover:bg-primary/10 hover:border-primary/30 transition-all group">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-primary text-xs uppercase tracking-widest font-bold">Total Uplinks</h3>
                                     <ArrowUp className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors" />

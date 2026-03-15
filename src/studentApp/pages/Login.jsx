@@ -286,21 +286,21 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, role: 'student' })}
-              className={`py-2 text-xs uppercase tracking-widest border transition-colors ${formData.role === 'student' ? 'bg-primary text-black border-primary font-bold' : 'border-white/20 text-text-muted hover:border-white'}`}
+              className={`py-2 text-xs uppercase tracking-widest border transition-colors ${formData.role === 'student' ? 'bg-[#ccff00] text-black border-[#ccff00] font-bold' : 'border-white/20 text-text-muted hover:border-[#ccff00] hover:text-[#ccff00]'}`}
             >
               Student
             </button>
             <button
               type="button"
               onClick={() => setFormData({ ...formData, role: 'recruiter' })}
-              className={`py-2 text-xs uppercase tracking-widest border transition-colors ${formData.role === 'recruiter' ? 'bg-primary text-black border-primary font-bold' : 'border-white/20 text-text-muted hover:border-white'}`}
+              className={`py-2 text-xs uppercase tracking-widest border transition-colors ${formData.role === 'recruiter' ? 'bg-[#cc33ff] text-white border-[#cc33ff] font-bold' : 'border-white/20 text-text-muted hover:border-[#cc33ff] hover:text-[#cc33ff]'}`}
             >
               Recruiter
             </button>
             <button
               type="button"
               onClick={() => setFormData({ ...formData, role: 'mentor' })}
-              className={`py-2 text-xs uppercase tracking-widest border transition-colors ${formData.role === 'mentor' ? 'bg-primary text-black border-primary font-bold' : 'border-white/20 text-text-muted hover:border-white'}`}
+              className={`py-2 text-xs uppercase tracking-widest border transition-colors ${formData.role === 'mentor' ? 'bg-[#00ccff] text-black border-[#00ccff] font-bold' : 'border-white/20 text-text-muted hover:border-[#00ccff] hover:text-[#00ccff]'}`}
             >
               Mentor
             </button>

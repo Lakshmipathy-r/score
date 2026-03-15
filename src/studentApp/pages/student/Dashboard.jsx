@@ -111,7 +111,7 @@ const StudentDashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 + index * 0.1 }}
-                className="bg-surface border border-white/10 p-6 hover:border-primary/50 transition-all group relative overflow-hidden"
+                className="bg-surface border border-white/10 p-6 hover:bg-primary/10 hover:border-primary/50 transition-all group relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 p-2 opacity-50 group-hover:opacity-100 transition-opacity">
                   <stat.icon className={`w-8 h-8 ${stat.color} opacity-20 group-hover:opacity-100 transition-all`} />

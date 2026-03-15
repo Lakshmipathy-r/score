@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Calendar, Loader2 } from 'lucide-react';
-import { updateUserProfile } from '../../../lib/userService';
+import { updateUserProfile } from '../../lib/userService';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 
