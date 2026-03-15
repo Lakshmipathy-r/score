@@ -80,6 +80,24 @@
     --surface: 0 0% 3%;
     --text-muted: 0 0% 60%;
   }
+
+  /* Mentor Theme Override (Cyan / Electric Blue) */
+  .theme-mentor {
+    --primary: 190 100% 50%;
+    /* #00ccff */
+    --primary-foreground: 0 0% 0%;
+    --surface: 0 0% 3%;
+    --text-muted: 0 0% 60%;
+  }
+
+  /* Recruiter Theme Override (Neon Purple) */
+  .theme-recruiter {
+    --primary: 280 100% 65%;
+    /* #cc33ff */
+    --primary-foreground: 0 0% 100%;
+    --surface: 0 0% 3%;
+    --text-muted: 0 0% 60%;
+  }
 }
 
 @layer utilities {
