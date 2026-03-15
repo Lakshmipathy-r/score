@@ -22,6 +22,7 @@ const Register = () => {
    
    const [currentStep, setCurrentStep] = useState(isGoogleAuth ? 2 : 1);
    const [isLoading, setIsLoading] = useState(false);
+   const [customSkill, setCustomSkill] = useState("");
    const [formData, setFormData] = useState({
       accountType: isGoogleAuth ? preselectedRole : '',
       fullName: isGoogleAuth ? googleUser.displayName || '' : '',
@@ -35,9 +36,10 @@ const Register = () => {
       bio: '',
       portfolio: '',
       verificationCode: '',
+      graduationMonth: '',
    });
 
-   const totalSteps = 5;
+   const totalSteps = 4;
 
    const handleChange = (e) => {
       const { name, value } = e.target;
@@ -51,6 +53,19 @@ const Register = () => {
             ? prev.skills.filter(s => s !== skill)
             : [...prev.skills, skill]
       }));
+   };
+
+   const handleAddCustomSkill = (e) => {
+      if (e) e.preventDefault();
+      if (!customSkill.trim()) return;
+      const formatted = customSkill.trim().toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '');
+      if (formatted && !formData.skills.includes(formatted)) {
+         setFormData(prev => ({
+            ...prev,
+            skills: [...prev.skills, formatted]
+         }));
+      }
+      setCustomSkill("");
    };
 
    const nextStep = () => {
@@ -106,16 +121,13 @@ const Register = () => {
                   console.error("Failed to sync new profile to store", e);
                }
                
-               nextStep();
+               setTimeout(() => navigate('/student/login'), 2000);
             }
          } catch (error) {
             toast.error('REGISTRATION FAILED: ' + error.message);
          } finally {
             setIsLoading(false);
          }
-      } else if (currentStep === totalSteps) {
-         toast.success('IDENTITY_VERIFIED. ROUTING TO LOGIN.');
-         setTimeout(() => navigate('/student/login'), 2000);
       } else {
          nextStep();
       }
@@ -413,18 +425,41 @@ const Register = () => {
                                           </label>
                                           <div className="relative">
                                              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                             <select
-                                                name="graduationYear"
-                                                value={formData.graduationYear}
-                                                onChange={handleChange}
-                                                className="w-full bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono appearance-none"
-                                                required
-                                             >
-                                                <option value="">SELECT_YEAR</option>
-                                                {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(year => (
-                                                   <option key={year} value={year}>{year}</option>
-                                                ))}
-                                             </select>
+                                             <div className="flex space-x-2">
+                                                <select
+                                                   name="graduationMonth"
+                                                   value={formData.graduationMonth}
+                                                   onChange={handleChange}
+                                                   className="w-1/2 bg-black/50 border border-white/10 py-3 pl-12 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono appearance-none"
+                                                   required
+                                                >
+                                                   <option value="">SELECT_MONTH</option>
+                                                   <option value="1">JANUARY</option>
+                                                   <option value="2">FEBRUARY</option>
+                                                   <option value="3">MARCH</option>
+                                                   <option value="4">APRIL</option>
+                                                   <option value="5">MAY</option>
+                                                   <option value="6">JUNE</option>
+                                                   <option value="7">JULY</option>
+                                                   <option value="8">AUGUST</option>
+                                                   <option value="9">SEPTEMBER</option>
+                                                   <option value="10">OCTOBER</option>
+                                                   <option value="11">NOVEMBER</option>
+                                                   <option value="12">DECEMBER</option>
+                                                </select>
+                                                <select
+                                                   name="graduationYear"
+                                                   value={formData.graduationYear}
+                                                   onChange={handleChange}
+                                                   className="w-1/2 bg-black/50 border border-white/10 py-3 pl-4 pr-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono appearance-none"
+                                                   required
+                                                >
+                                                   <option value="">SELECT_YEAR</option>
+                                                   {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(year => (
+                                                      <option key={year} value={year}>{year}</option>
+                                                   ))}
+                                                </select>
+                                             </div>
                                           </div>
                                        </div>
                                        <div className="group">
@@ -465,23 +500,55 @@ const Register = () => {
 
                            <div>
                               <label className="block text-[10px] uppercase tracking-widest text-text-muted mb-4">
-                                 Available_Modules
+                                 Add_Custom_Module
                               </label>
-                              <div className="grid grid-cols-2 gap-2">
-                                 {skillOptions.map(skill => (
+                              <div className="flex space-x-2 mb-6">
+                                 <input
+                                    type="text"
+                                    value={customSkill}
+                                    onChange={(e) => setCustomSkill(e.target.value)}
+                                    onKeyDown={(e) => {
+                                       if (e.key === 'Enter') {
+                                           e.preventDefault();
+                                           handleAddCustomSkill();
+                                       }
+                                    }}
+                                    placeholder="E.G. NEXT_JS"
+                                    className="flex-1 bg-black/50 border border-white/10 py-3 px-4 text-sm text-white focus:border-primary focus:outline-none transition-colors font-mono uppercase"
+                                 />
+                                 <button
+                                    type="button"
+                                    onClick={handleAddCustomSkill}
+                                    className="px-6 py-3 bg-white/10 hover:bg-primary hover:text-black border border-white/10 text-white font-bold transition-colors text-xs uppercase tracking-widest"
+                                 >
+                                    Add
+                                 </button>
+                              </div>
+
+                              <label className="block text-[10px] uppercase tracking-widest text-text-muted mb-4">
+                                 Skill_Database / Selected
+                              </label>
+                              <div className="flex flex-wrap gap-2">
+                                 {formData.skills.map(skill => (
                                     <button
                                        key={skill}
                                        type="button"
                                        onClick={() => handleSkillToggle(skill)}
-                                       className={`
-                                   px-2 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border
-                                   ${formData.skills.includes(skill)
-                                             ? 'bg-primary text-black border-primary'
-                                             : 'bg-transparent text-text-muted border-white/10 hover:border-white/50 hover:text-white'
-                                          }
-                                `}
+                                       className="px-2 py-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all border bg-primary text-black border-primary"
+                                       title="Click to remove"
                                     >
-                                       {skill}
+                                       {skill} <span className="opacity-50 hover:opacity-100 font-bold text-sm leading-none block ml-1">×</span>
+                                    </button>
+                                 ))}
+                                 
+                                 {skillOptions.filter(s => !formData.skills.includes(s)).map(skill => (
+                                    <button
+                                       key={skill}
+                                       type="button"
+                                       onClick={() => handleSkillToggle(skill)}
+                                       className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider transition-all border bg-transparent text-text-muted border-white/10 hover:border-white/50 hover:text-white"
+                                    >
+                                       + {skill}
                                     </button>
                                  ))}
                               </div>
@@ -503,56 +570,7 @@ const Register = () => {
                         </motion.div>
                      )}
 
-                     {/* Step 5: Verification */}
-                     {currentStep === 5 && (
-                        <motion.div
-                           key="step5"
-                           initial={{ opacity: 0, x: 20 }}
-                           animate={{ opacity: 1, x: 0 }}
-                           exit={{ opacity: 0, x: -20 }}
-                           transition={{ duration: 0.3 }}
-                           className="text-center py-8"
-                        >
-                           <div className="w-20 h-20 bg-primary/10 border border-primary rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-                              <Mail className="w-10 h-10 text-primary" />
-                           </div>
-                           <h2 className="text-xl font-bold text-white uppercase tracking-wider mb-2">Verification Required</h2>
-                           <p className="text-text-muted text-xs font-mono mb-8">
-                              Uplink established. Code sent to: <span className="text-primary">{formData.email}</span>
-                           </p>
 
-                           <div className="mb-8">
-                              <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-4">
-                                 Input_Auth_Code
-                              </label>
-                              <div className="flex justify-center space-x-2">
-                                 {[...Array(6)].map((_, i) => (
-                                    <input
-                                       key={i}
-                                       type="text"
-                                       maxLength={1}
-                                       className="w-10 h-12 bg-black border border-white/20 text-center text-xl text-primary font-mono focus:border-primary focus:outline-none transition-colors"
-                                    />
-                                 ))}
-                              </div>
-                           </div>
-
-                           <button
-                              type="button"
-                              onClick={async () => {
-                                 try {
-                                    await sendVerification();
-                                    toast.success('SIGNAL RESENT TO ' + formData.email);
-                                 } catch (err) {
-                                    toast.error('RESEND FAILED');
-                                 }
-                              }}
-                              className="text-xs text-text-muted hover:text-white underline decoration-dashed uppercase tracking-widest"
-                           >
-                              Resend_Signal
-                           </button>
-                        </motion.div>
-                     )}
                   </AnimatePresence>
 
                   {/* Navigation Buttons */}

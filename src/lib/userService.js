@@ -22,6 +22,7 @@ export const createUserProfile = async (uid, email, role, profileData) => {
     await setDoc(studentProfileRef, {
       institution: profileData.institution || "",
       graduationYear: profileData.graduationYear || "",
+      graduationMonth: profileData.graduationMonth || "",
       course: profileData.course || "",
       skills: profileData.skills || [],
       portfolio: profileData.portfolio || "",
@@ -65,6 +66,35 @@ export const getUserProfile = async (uid) => {
     const studentDataSnap = await getDoc(doc(db, `users/${uid}/studentProfile`, "data"));
     if (studentDataSnap.exists()) {
       const sData = studentDataSnap.data();
+      
+      // Auto-graduation logic
+      if (sData.graduationYear && sData.graduationMonth && (userData.role === "School Student" || userData.role === "student" || userData.role === "College Student")) {
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1; // 1-12
+        const gradYear = parseInt(sData.graduationYear, 10);
+        const gradMonth = parseInt(sData.graduationMonth, 10);
+
+        if (gradYear < currentYear || (gradYear === currentYear && currentMonth > gradMonth)) {
+          let newRole = userData.role;
+          if (userData.role === "School Student") {
+            newRole = "College Student";
+          } else if (userData.role === "student" || userData.role === "College Student") {
+            newRole = "Alumni/Mentor";
+          }
+          
+          if (newRole !== userData.role) {
+            const updatePayload = { role: newRole, updatedAt: new Date().toISOString() };
+            if (newRole === "College Student") {
+               updatePayload.needsGraduationUpdate = true;
+               userData.needsGraduationUpdate = true;
+            }
+            await updateDoc(userRef, updatePayload);
+            userData.role = newRole;
+          }
+        }
+      }
+
       roleData = {
         ...sData,
         roleTitle: sData.roleTitle || sData.course || userData.role,

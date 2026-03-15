@@ -1,9 +1,10 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import GraduationUpdateModal from './GraduationUpdateModal';
 
 const ProtectedRoute = () => {
-  const { isAuthenticated, isAuthResolved } = useAuthStore();
+  const { user, isAuthenticated, isAuthResolved } = useAuthStore();
 
   if (!isAuthResolved) {
     return (
@@ -15,6 +16,15 @@ const ProtectedRoute = () => {
 
   if (!isAuthenticated) {
     return <Navigate to="/student/login" replace />;
+  }
+
+  if (user?.needsGraduationUpdate) {
+    return (
+       <>
+         <Outlet />
+         <GraduationUpdateModal />
+       </>
+    );
   }
 
   return <Outlet />;
