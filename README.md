@@ -182,7 +182,9 @@ Demonstrates full-stack development
 Implements secure authentication systems
 Uses scalable cloud architecture
 
-⭐ Support
+---
+
+### ⭐ Support
 
 If you like this project:
 
