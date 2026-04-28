@@ -22,27 +22,26 @@
 
 ---
 
-## 🎥 Demo
-
-🔗 Live Demo: *Coming Soon*  
-📽️ Demo Video: *Add your Loom/YouTube link here*
-
----
-
 ## 📸 Screenshots
 
-student
+Student
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125945.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20124855.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125432.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125200.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125459.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125513.png)
-recruiter
+
+---
+
+# Recruiter
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125533.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125547.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125607.png)
-mentor
+
+---
+
+# Mentor
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125647.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125703.png)
 
@@ -104,21 +103,22 @@ User → React Frontend → Node.js API → Firebase (Auth + Firestore)
 
 ## 📂 Project Structure
 
-
+```bash
 client/
 ├── components/
 ├── pages/
 ├── context/
 ├── firebase.js
 └── App.js
-
+```
+```bash
 backend/
 ├── config/
 ├── middleware/
 ├── routes/
 ├── controllers/
 └── server.js
-
+```
 
 ---
 
