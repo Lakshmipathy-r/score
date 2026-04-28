@@ -40,7 +40,6 @@
 ### 💼 Gig Creation
 ![Gig](https://via.placeholder.com/800x400?text=Gig+Creation)
 
-> 💡 Replace these with real screenshots for strong impact
 
 ---
 
@@ -118,7 +117,7 @@ backend/
 ## ⚙️ Installation
 
 ### 1️⃣ Clone the repo
-```bash
+
 git clone https://github.com/your-username/score.git
 cd score
 2️⃣ Install dependencies
@@ -132,38 +131,43 @@ npm install
 node server.js
 🔑 Environment Setup
 
-Create a Firebase project and add:
+### Create a Firebase project and add:
 
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
   projectId: "YOUR_PROJECT_ID",
 };
-🧪 Testing
+
+---
+
+### 🧪 Testing
 ✅ Unit Testing
 ✅ Integration Testing
 ✅ API Testing (Postman)
 ✅ Security Testing
-🔒 Security Highlights
-JWT Token Verification
-Role-Based Access Control
-Firebase Authentication
-Firestore Security Rules
-🚀 Future Enhancements
+
+### 🔒 Security Highlights
+- JWT Token Verification
+- Role-Based Access Control
+- Firebase Authentication
+- Firestore Security Rules
+
+---
+
+### 🚀 Future Enhancements
 💳 Payment & Escrow System
 💬 Real-time Chat
 🤖 AI-based Gig Matching
 📱 Mobile App
 🔔 Push Notifications
 🎯 Why This Project Matters
+
 Solves real student freelancing problems
 Demonstrates full-stack development
 Implements secure authentication systems
 Uses scalable cloud architecture
-👨‍💻 Contributors
-Lakshmipathy R
-Roshni Dhimar
-Sathya Sai Kumar R
+
 ⭐ Support
 
 If you like this project:
