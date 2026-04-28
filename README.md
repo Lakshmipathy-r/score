@@ -1,77 +1,127 @@
-🚀 SCORE – Secure Skill-Based Web Application
+# 🚀 SCORE – Secure Skill-Based Web Application
 
-A full-stack MERN + Firebase web application that creates a secure freelancing ecosystem for students and verified alumni.
+<p align="center">
+  <b>A Full-Stack MERN + Firebase Platform for Secure Student Freelancing</b>
+</p>
 
-📖 About the Project
+<p align="center">
+  <img src="https://img.shields.io/badge/React.js-Frontend-blue?logo=react" />
+  <img src="https://img.shields.io/badge/Node.js-Backend-green?logo=node.js" />
+  <img src="https://img.shields.io/badge/Firebase-Database-orange?logo=firebase" />
+  <img src="https://img.shields.io/badge/Status-Completed-success" />
+  <img src="https://img.shields.io/badge/License-MIT-lightgrey" />
+</p>
 
-SCORE is a role-based academic freelancing platform designed to bridge the gap between student talent and real-world opportunities.
+---
 
-Unlike traditional freelancing platforms, SCORE ensures:
+## 📌 Overview
 
-✅ Institutional verification
-✅ Reduced fraud
-✅ Student-focused ecosystem
-✨ Features
-🔐 Secure Authentication
-Firebase Authentication (JWT-based)
-Token verification & protected routes
-👥 Role-Based Access
-Student
-Alumni
-Recruiter
-💼 Gig Marketplace
-Post gigs (Alumni/Recruiters)
-Apply to gigs (Students)
-📊 Dashboards
-Personalized dashboards per role
-Application tracking system
-☁️ Cloud Database
-Firebase Firestore (NoSQL, scalable)
-🔄 Alumni Transition
-Students continue as alumni without re-registration
-🛠️ Tech Stack
-Frontend
-React.js
-HTML5, CSS3
-Tailwind CSS
-JavaScript (ES6+)
-Backend
-Node.js
-Express.js
-Database & Auth
-Firebase Authentication
-Firebase Firestore
-Tools
-Git & GitHub
-Postman
-VS Code
-🏗️ Architecture
+**SCORE** is a secure, role-based freelancing platform built exclusively for **students and verified alumni**, solving trust and accessibility issues in traditional freelancing systems.
+
+> 🎯 Built as a **Final Year BCA Project** with real-world full-stack architecture.
+
+---
+
+## 🎥 Demo
+
+🔗 Live Demo: *Coming Soon*  
+📽️ Demo Video: *Add your Loom/YouTube link here*
+
+---
+
+## 📸 Screenshots
+
+### 🔐 Login Page
+![Login](https://via.placeholder.com/800x400?text=Login+Page)
+
+### 📊 Student Dashboard
+![Dashboard](https://via.placeholder.com/800x400?text=Student+Dashboard)
+
+### 💼 Gig Creation
+![Gig](https://via.placeholder.com/800x400?text=Gig+Creation)
+
+> 💡 Replace these with real screenshots for strong impact
+
+---
+
+## ✨ Key Features
+
+### 🔐 Authentication & Security
+- Firebase Authentication (JWT)
+- Token-based route protection
+- Firestore security rules
+
+### 👥 Role-Based System
+- 🎓 Student → Apply for gigs  
+- 🎓 Alumni → Post gigs  
+- 🧑‍💼 Recruiter → Manage opportunities  
+
+### 💼 Freelancing System
+- Gig posting & browsing  
+- Application tracking  
+- Structured workflow  
+
+### ☁️ Cloud-Based Architecture
+- Firebase Firestore (NoSQL)
+- Scalable & real-time  
+
+### 🔄 Smart Features
+- Alumni transition system  
+- Role-based dashboards  
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer        | Technology |
+|-------------|-----------|
+| Frontend    | React.js, Tailwind CSS |
+| Backend     | Node.js, Express.js |
+| Database    | Firebase Firestore |
+| Auth        | Firebase Authentication |
+| Tools       | Git, GitHub, Postman |
+
+---
+
+## 🏗️ System Architecture
+
+
 User → React Frontend → Node.js API → Firebase (Auth + Firestore)
-Frontend → UI & user interaction
-Backend → API & business logic
-Database → Cloud storage
-📂 Project Structure
-Frontend
-src/
+
+
+- **Frontend:** UI & client interaction  
+- **Backend:** API & business logic  
+- **Database:** Cloud data storage  
+
+---
+
+## 📂 Project Structure
+
+
+client/
 ├── components/
 ├── pages/
 ├── context/
 ├── firebase.js
-├── App.js
-└── index.js
-Backend
+└── App.js
+
 backend/
 ├── config/
 ├── middleware/
 ├── routes/
 ├── controllers/
-├── server.js
-└── package.json
-⚙️ Getting Started
-1. Clone the repo
+└── server.js
+
+
+---
+
+## ⚙️ Installation
+
+### 1️⃣ Clone the repo
+```bash
 git clone https://github.com/your-username/score.git
 cd score
-2. Install dependencies
+2️⃣ Install dependencies
 Frontend
 cd client
 npm install
@@ -80,58 +130,47 @@ Backend
 cd backend
 npm install
 node server.js
-3. Setup Firebase
+🔑 Environment Setup
 
-Create a Firebase project and add your config:
+Create a Firebase project and add:
 
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
   projectId: "YOUR_PROJECT_ID",
 };
-🔑 Core Modules
-Authentication Module
-Login, Register, Token Verification
-Student Module
-Browse gigs, Apply, Track status
-Alumni Module
-Create gigs, Manage applications
-Database Module
-Users, Gigs, Applications, Reviews
 🧪 Testing
-Unit Testing
-Integration Testing
-API Testing (Postman)
-Security Testing
-🔒 Security
-Firebase Authentication
+✅ Unit Testing
+✅ Integration Testing
+✅ API Testing (Postman)
+✅ Security Testing
+🔒 Security Highlights
 JWT Token Verification
 Role-Based Access Control
+Firebase Authentication
 Firestore Security Rules
 🚀 Future Enhancements
 💳 Payment & Escrow System
 💬 Real-time Chat
-🤖 AI-based Recommendations
-📱 Mobile Application
+🤖 AI-based Gig Matching
+📱 Mobile App
 🔔 Push Notifications
-🎯 Project Objectives
-Provide verified freelancing opportunities
-Improve student employability
-Build a secure digital ecosystem
-Bridge academia ↔ industry gap
+🎯 Why This Project Matters
+Solves real student freelancing problems
+Demonstrates full-stack development
+Implements secure authentication systems
+Uses scalable cloud architecture
 👨‍💻 Contributors
 Lakshmipathy R
 Roshni Dhimar
 Sathya Sai Kumar R
-📚 References
-React Documentation
-Node.js Documentation
-Firebase Documentation
-Software Engineering (Pressman)
-⭐ Show Your Support
+⭐ Support
 
 If you like this project:
 
-⭐ Star the repo
+⭐ Star the repository
 🍴 Fork it
 🛠️ Contribute
+📄 License
+
+This project is licensed under the MIT License.
