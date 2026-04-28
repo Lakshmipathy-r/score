@@ -24,7 +24,7 @@
 
 ## 📸 Screenshots
 
-Student
+# Student
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125945.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20124855.png)
 ![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125432.png)
