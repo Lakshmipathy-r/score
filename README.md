@@ -118,34 +118,40 @@ backend/
 
 ### 1️⃣ Clone the repo
 
+```bash
 git clone https://github.com/your-username/score.git
 cd score
-2️⃣ Install dependencies
+```
+### 2️⃣ Install dependencies
 Frontend
-cd client
+```bash
+ cd client
 npm install
 npm start
+```
 Backend
+```bash
 cd backend
 npm install
 node server.js
+```
 🔑 Environment Setup
 
 ### Create a Firebase project and add:
-
+```bash
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
   projectId: "YOUR_PROJECT_ID",
 };
-
+```
 ---
 
 ### 🧪 Testing
-✅ Unit Testing
-✅ Integration Testing
-✅ API Testing (Postman)
-✅ Security Testing
+- ✅ Unit Testing
+- ✅ Integration Testing
+- ✅ API Testing (Postman)
+- ✅ Security Testing
 
 ### 🔒 Security Highlights
 - JWT Token Verification
@@ -156,12 +162,12 @@ const firebaseConfig = {
 ---
 
 ### 🚀 Future Enhancements
-💳 Payment & Escrow System
-💬 Real-time Chat
-🤖 AI-based Gig Matching
-📱 Mobile App
-🔔 Push Notifications
-🎯 Why This Project Matters
+- 💳 Payment & Escrow System
+- 💬 Real-time Chat
+- 🤖 AI-based Gig Matching
+- 📱 Mobile App
+- 🔔 Push Notifications
+- 🎯 Why This Project Matters
 
 Solves real student freelancing problems
 Demonstrates full-stack development
@@ -172,9 +178,9 @@ Uses scalable cloud architecture
 
 If you like this project:
 
-⭐ Star the repository
-🍴 Fork it
-🛠️ Contribute
-📄 License
+- ⭐ Star the repository
+- 🍴 Fork it
+- 🛠️ Contribute
+- 📄 License
 
 This project is licensed under the MIT License.
