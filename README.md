@@ -31,14 +31,22 @@
 
 ## 📸 Screenshots
 
-### 🔐 Login Page
-![Login](https://via.placeholder.com/800x400?text=Login+Page)
+student
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125945.png)
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20124855.png)
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125432.png)
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125200.png)
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125459.png)
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125513.png)
+recruiter
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125533.png)
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125547.png)
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125607.png)
+mentor
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125647.png)
+![imagealt](https://github.com/Lakshmipathy-r/score/blob/main/images/Screenshot%202026-04-28%20125703.png)
 
-### 📊 Student Dashboard
-![Dashboard](https://via.placeholder.com/800x400?text=Student+Dashboard)
 
-### 💼 Gig Creation
-![Gig](https://via.placeholder.com/800x400?text=Gig+Creation)
 
 
 ---
