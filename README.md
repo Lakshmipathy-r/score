@@ -127,7 +127,7 @@ backend/
 ### 1️⃣ Clone the repo
 
 ```bash
-git clone https://github.com/your-username/score.git
+git clone https://github.com/Lakshmipathy-r/score.git
 cd score
 ```
 ### 2️⃣ Install dependencies
