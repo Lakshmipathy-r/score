@@ -75,22 +75,25 @@ export const getUserProfile = async (uid) => {
         const gradYear = parseInt(sData.graduationYear, 10);
         const gradMonth = parseInt(sData.graduationMonth, 10);
 
-        if (gradYear < currentYear || (gradYear === currentYear && currentMonth > gradMonth)) {
-          let newRole = userData.role;
-          if (userData.role === "School Student") {
-            newRole = "College Student";
-          } else if (userData.role === "student" || userData.role === "College Student") {
-            newRole = "Alumni/Mentor";
-          }
-          
-          if (newRole !== userData.role) {
-            const updatePayload = { role: newRole, updatedAt: new Date().toISOString() };
-            if (newRole === "College Student") {
-               updatePayload.needsGraduationUpdate = true;
-               userData.needsGraduationUpdate = true;
+        // B-06: Guard against NaN — skip if graduation dates are invalid
+        if (!isNaN(gradYear) && !isNaN(gradMonth)) {
+          if (gradYear < currentYear || (gradYear === currentYear && currentMonth > gradMonth)) {
+            let newRole = userData.role;
+            if (userData.role === "School Student") {
+              newRole = "College Student";
+            } else if (userData.role === "student" || userData.role === "College Student") {
+              newRole = "Alumni/Mentor";
             }
-            await updateDoc(userRef, updatePayload);
-            userData.role = newRole;
+            
+            if (newRole !== userData.role) {
+              const updatePayload = { role: newRole, updatedAt: new Date().toISOString() };
+              if (newRole === "College Student") {
+                 updatePayload.needsGraduationUpdate = true;
+                 userData.needsGraduationUpdate = true;
+              }
+              await updateDoc(userRef, updatePayload);
+              userData.role = newRole;
+            }
           }
         }
       }

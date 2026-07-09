@@ -24,22 +24,22 @@ const StudentLayout = () => {
     const themeClass = getThemeClass();
 
     useEffect(() => {
-        // Remove any existing themes explicitly
+        // Apply theme to body whenever the user's role changes
         document.body.classList.remove('theme-student', 'theme-mentor', 'theme-recruiter');
-        
-        // Apply appropriate theme to body
         document.body.classList.add(themeClass);
-
-        // Always show the system boot loading screen on component mount
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 4500); // 4.5s to match the boot sequence roughly
-        
         return () => {
-            clearTimeout(timer);
             document.body.classList.remove(themeClass);
         };
     }, [themeClass]);
+
+    useEffect(() => {
+        // Boot screen plays ONCE on initial mount only.
+        // Using a ref-guarded timer so navigating between routes doesn't replay it.
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 4500);
+        return () => clearTimeout(timer);
+    }, []); // empty deps — runs once on mount
 
     if (isLoading) {
         return (

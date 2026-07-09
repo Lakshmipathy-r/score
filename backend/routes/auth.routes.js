@@ -1,8 +1,11 @@
-import admin from '../firebase.js'; // Assumes admin is exported from firebase.js
-import Mentor from '../models/Mentor.js';
+import express from 'express';
+import admin from '../firebase.js';
 
 const router = express.Router();
 
+// POST /api/auth/verify
+// Verifies a Firebase ID token and returns the user's role from Firestore.
+// Role is stored in the Firestore 'users' collection (set during registration).
 router.post('/verify', async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
@@ -12,23 +15,19 @@ router.post('/verify', async (req, res) => {
 
         const token = authHeader.split('Bearer ')[1];
 
-        // Verify token
+        // Verify the Firebase ID token
         const decodedToken = await admin.auth().verifyIdToken(token);
-        const { uid, email } = decodedToken;
+        const { uid } = decodedToken;
 
-        // Check if user is a mentor in database
-        const mentor = await Mentor.findOne({ $or: [{ uid: uid }, { email: email }] });
+        // Fetch the user's role from Firestore (all roles are stored there)
+        const userDoc = await admin.firestore().collection('users').doc(uid).get();
 
-        if (mentor) {
-            return res.json({ role: 'mentor' });
+        if (!userDoc.exists) {
+            return res.status(404).json({ error: 'User profile not found' });
         }
 
-        // Wait... If they are not a mentor, what role should we return? 
-        // The prompt says "Return role". If they aren't a mentor, we might return student or recruiter.
-        // We'll return based on whatever default logic or if we query another table.
-        // Since we don't have a generic User table yet with roles for students and recruiters,
-        // we omit role to let frontend use its own fallback.
-        return res.json({}); // Provide empty object instead of student fallback
+        const { role } = userDoc.data();
+        return res.json({ role: role || null });
 
     } catch (error) {
         console.error('Auth verification error:', error);

@@ -56,30 +56,31 @@ export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
   const userCredential = await signInWithPopup(auth, provider);
   const user = userCredential.user;
-  
+
+  let existingProfile;
   try {
-    const existingProfile = await getUserProfile(user.uid);
-    if (!existingProfile) {
-       // Profile doesn't exist, throw custom error
-       const error = new Error("profile_missing");
-       error.code = "auth/profile-missing";
-       error.user = user;
-       throw error;
-    }
+    existingProfile = await getUserProfile(user.uid);
   } catch (error) {
-    if (error.code === "auth/profile-missing" || error.message.includes("does not exist")) {
-        // We know they don't have a profile. 
-        // We pass the error up so the frontend can redirect to /register
-        const missingError = new Error("profile_missing");
-        missingError.code = "auth/profile-missing";
-        missingError.user = user;
-        throw missingError;
+    // Only treat "does not exist" as a missing profile — rethrow everything else
+    if (error.message && error.message.includes("does not exist")) {
+      const missingError = new Error("profile_missing");
+      missingError.code = "auth/profile-missing";
+      missingError.user = user;
+      throw missingError;
     }
-    throw error;
+    throw error; // Network errors, permission errors, etc. propagate as-is
   }
-  
+
+  if (!existingProfile) {
+    const missingError = new Error("profile_missing");
+    missingError.code = "auth/profile-missing";
+    missingError.user = user;
+    throw missingError;
+  }
+
   return user;
 };
+
 
 export const logoutUser = async () => {
   await signOut(auth);

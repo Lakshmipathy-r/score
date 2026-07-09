@@ -50,7 +50,7 @@ export const sendMessage = async (conversationId, senderId, text, participants =
   const msgData = {
     senderId,
     text,
-    timestamp: new Date().toISOString()
+    timestamp: serverTimestamp() // B-07: use serverTimestamp for consistent Firestore ordering
   };
   
   const convRef = doc(db, "conversations", conversationId);

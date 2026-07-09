@@ -139,7 +139,7 @@ const DoubtThread = ({ doubtId, currentUser, onClose, onResolved }) => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     key={reply.id} 
-                    className={`p-4 border ${reply.userRole.toLowerCase().includes('mentor') ? 'border-primary/30 bg-primary/5' : 'border-white/10 bg-surface'} flex space-x-4`}
+                    className={`p-4 border ${(reply.userRole || '').toLowerCase().includes('mentor') ? 'border-primary/30 bg-primary/5' : 'border-white/10 bg-surface'} flex space-x-4`}
                   >
                     <div className="w-8 h-8 shrink-0 rounded-full bg-black flex items-center justify-center border border-white/10">
                       <User className="w-4 h-4 text-white" />
@@ -147,8 +147,8 @@ const DoubtThread = ({ doubtId, currentUser, onClose, onResolved }) => {
                     <div>
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="font-bold text-sm text-white">{reply.userName}</span>
-                        <span className={`text-[10px] uppercase px-1.5 py-0.5 border ${reply.userRole.toLowerCase().includes('mentor') ? 'text-primary border-primary' : 'text-text-muted border-white/20'}`}>
-                          {reply.userRole}
+                        <span className={`text-[10px] uppercase px-1.5 py-0.5 border ${(reply.userRole || '').toLowerCase().includes('mentor') ? 'text-primary border-primary' : 'text-text-muted border-white/20'}`}>
+                          {reply.userRole || 'Student'}
                         </span>
                         <span className="text-[10px] text-text-muted font-mono">{new Date(reply.createdAt).toLocaleDateString()}</span>
                       </div>

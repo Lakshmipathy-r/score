@@ -10,14 +10,16 @@ import { logoutUser } from '../../lib/authService';
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
 
   const handleLogout = async () => {
     try {
-      await logoutUser();
-      navigate('/student/login');
+      await logoutUser();     // Firebase signOut
     } catch (error) {
       console.error("Logout failed", error);
+    } finally {
+      logout();               // Clear Zustand store
+      navigate('/student/login');
     }
   };
 

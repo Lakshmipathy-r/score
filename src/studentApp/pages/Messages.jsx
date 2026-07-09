@@ -70,7 +70,15 @@ const Messages = () => {
                id: m.id,
                sender: m.senderId === user.uid ? 'me' : m.senderId,
                text: m.text,
-               time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+               time: (() => {
+                  try {
+                     if (!m.timestamp) return "--:--";
+                     const d = m.timestamp.seconds ? new Date(m.timestamp.seconds * 1000) : new Date(m.timestamp);
+                     return isNaN(d) ? "--:--" : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  } catch (e) {
+                     return "--:--";
+                  }
+               })(),
                isOwn: m.senderId === user.uid,
                isEdited: m.isEdited || false
             }));

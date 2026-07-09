@@ -6,6 +6,7 @@ import {
   Home, Briefcase, FileText, MessageCircle, Star, Settings, LogOut, Check
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { logoutUser } from '../../lib/authService';
 
 const Navbar = () => {
   const location = useLocation();
@@ -33,9 +34,15 @@ const Navbar = () => {
     { icon: Star, label: 'Reviews', path: '/student/reviews' },
   ];
 
-  const handleLogout = () => {
-    logout();
-    navigate('/student/login');
+  const handleLogout = async () => {
+    try {
+      await logoutUser(); // Firebase signOut (B-03)
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      logout(); // Clear Zustand state
+      navigate('/student/login');
+    }
   };
 
   return (
@@ -73,13 +80,13 @@ const Navbar = () => {
                 className="relative p-2 text-text-muted hover:text-primary transition-colors border border-transparent hover:border-white/10"
               >
                 <Bell className="w-5 h-5" />
-                {unreadCount > 0 && user?.role === 'mentor' && (
+                {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-none animate-pulse"></span>
                 )}
               </button>
 
               <AnimatePresence>
-                {notificationsOpen && user?.role === 'mentor' && (
+                {notificationsOpen && (
                   <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}

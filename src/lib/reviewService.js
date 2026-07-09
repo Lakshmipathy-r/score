@@ -37,11 +37,8 @@ export const createReview = async (gigId, gigTitle, studentId, recruiterId, rati
         if (!userDoc.exists()) throw new Error("Student does not exist!");
         
         const userData = userDoc.data();
-        const roleColl = (userData.role === "Alumni/Mentor" || userData.role === "mentor" || userData.role === "Mentor") 
-            ? "studentProfile" // Using same subcollection for mentors for now based on userService
-            : "studentProfile";
-            
-        const profileRef = doc(db, `users/${studentId}/${roleColl}`, "data");
+        // B-08: All student/alumni/mentor ratings are stored in studentProfile subcollection
+        const profileRef = doc(db, `users/${studentId}/studentProfile`, "data");
         const profileDoc = await transaction.get(profileRef);
         
         if (profileDoc.exists()) {

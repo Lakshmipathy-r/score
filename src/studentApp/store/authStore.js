@@ -18,8 +18,8 @@ export const useAuthStore = create((set) => ({
   }),
   
   // Kept for backward compatibility, but we now use authService for real login
-  login: (userData) => set({ user: userData, isAuthenticated: true }),
-  logout: () => set({ user: null, isAuthenticated: false }),
+  login: (userData) => set({ user: userData, isAuthenticated: true, isAuthResolved: true }),
+  logout: () => set({ user: null, isAuthenticated: false, isAuthResolved: true }),
   
   updateUser: (userData) => set((state) => ({ 
     user: { ...state.user, ...userData } 
