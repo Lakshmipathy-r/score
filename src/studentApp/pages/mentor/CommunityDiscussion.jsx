@@ -5,7 +5,14 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import { useAuthStore } from '../../store/authStore';
-import { subscribeToMessages, sendMessage, editMessage } from '../../../lib/messageService';
+import { 
+  subscribeToMessages, 
+  sendMessage, 
+  editMessage,
+  parseMessageDate,
+  formatMessageTime,
+  getFormattedDateHeader 
+} from '../../../lib/messageService';
 import { getUserProfile } from '../../../lib/userService';
 
 const CommunityDiscussion = () => {
@@ -24,26 +31,20 @@ const CommunityDiscussion = () => {
 
     useEffect(() => {
         const unsub = subscribeToMessages(activeChannel, (data) => {
-            const mappedMessages = data.map(m => ({
-                id: m.id,
-                senderId: m.senderId,
-                text: m.text,
-                senderRole: m.senderRole || 'Student',
-                senderName: m.senderName || m.senderId, // Will resolve names async below
-                time: (() => {
-                    try {
-                        if (!m.timestamp) return "--:--";
-                        const d = m.timestamp.seconds ? new Date(m.timestamp.seconds * 1000) : new Date(m.timestamp);
-                        return isNaN(d) ? "--:--" : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    } catch(e) { return "--:--"; }
-                })(),
-                isOwn: m.senderId === user?.uid,
-                isEdited: m.isEdited || false,
-                timestamp: (() => {
-                    if (!m.timestamp) return new Date().toISOString();
-                    return m.timestamp.seconds ? new Date(m.timestamp.seconds * 1000).toISOString() : new Date(m.timestamp).toISOString();
-                })()
-            }));
+            const mappedMessages = data.map(m => {
+                const rawDate = parseMessageDate(m.timestamp);
+                return {
+                    id: m.id,
+                    senderId: m.senderId,
+                    text: m.text,
+                    senderRole: m.senderRole || 'Student',
+                    senderName: m.senderName || m.senderId,
+                    time: formatMessageTime(m.timestamp),
+                    rawTimestamp: rawDate,
+                    isOwn: m.senderId === user?.uid,
+                    isEdited: m.isEdited || false
+                };
+            });
             setMessages(mappedMessages);
         });
         return () => unsub();
@@ -75,7 +76,7 @@ const CommunityDiscussion = () => {
 
     // Auto scroll to bottom
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
     }, [messages]);
 
     const handleSendMessage = async () => {
@@ -104,6 +105,8 @@ const CommunityDiscussion = () => {
             console.error("Failed to edit message", err);
         }
     };
+
+    let lastDateHeader = null;
 
     return (
         <div className="min-h-screen bg-background font-mono selection:bg-primary selection:text-black flex flex-col">
@@ -188,91 +191,107 @@ const CommunityDiscussion = () => {
                                 </div>
                              ) : (
                                  messages.map((msg, index) => {
-                                    // Calculate if we should group messages from same user
+                                    const currentDateHeader = getFormattedDateHeader(msg.rawTimestamp);
+                                    const showDateDivider = currentDateHeader !== lastDateHeader;
+                                    lastDateHeader = currentDateHeader;
+
                                     const prevMsg = messages[index - 1];
-                                    const showHeader = !prevMsg || prevMsg.senderId !== msg.senderId || (new Date(msg.timestamp) - new Date(prevMsg.timestamp) > 5 * 60 * 1000); // 5 min gap
+                                    const showHeader = showDateDivider || !prevMsg || prevMsg.senderId !== msg.senderId || (new Date(msg.rawTimestamp) - new Date(prevMsg.rawTimestamp) > 5 * 60 * 1000);
                                     const resolvedName = namesMap[msg.senderId] || msg.senderName || 'Anonymous';
                                     
                                     return (
-                                     <motion.div
-                                         key={msg.id}
-                                         initial={{ opacity: 0, x: -10 }}
-                                         animate={{ opacity: 1, x: 0 }}
-                                         className={`flex hover:bg-white/5 px-2 py-1 -mx-2 group rounded-sm ${showHeader ? 'mt-4' : 'mt-0'}`}
-                                     >
-                                         <div className="flex gap-4 w-full">
-                                            {/* Avatar or time placeholder */}
-                                            <div className="w-10 flex shrink-0 justify-center">
-                                                {showHeader ? (
-                                                   <div className="w-10 h-10 rounded-full bg-surface border border-white/20 flex items-center justify-center font-bold text-white uppercase overflow-hidden shrink-0 mt-0.5">
-                                                      {(resolvedName || 'A').charAt(0)}
-                                                   </div>
-                                                ) : (
-                                                   <span className="text-[10px] text-text-muted opacity-0 group-hover:opacity-100 mt-1 font-mono uppercase tracking-tighter">
-                                                      {msg.time}
-                                                   </span>
-                                                )}
+                                     <React.Fragment key={msg.id}>
+                                         {showDateDivider && (
+                                            <div className="flex items-center justify-center my-6 relative select-none">
+                                               <div className="absolute inset-0 flex items-center">
+                                                  <div className="w-full border-t border-white/10" />
+                                               </div>
+                                               <div className="relative px-4 py-1 bg-surface border border-white/15 rounded-full text-[10px] font-mono font-semibold uppercase tracking-widest text-primary shadow-sm backdrop-blur-md">
+                                                  {currentDateHeader}
+                                               </div>
                                             </div>
+                                         )}
 
-                                             {/* Message Content */}
-                                             <div className="flex flex-col flex-1 pb-1">
-                                                 {showHeader && (
-                                                     <div className="flex items-end gap-2 mb-1">
-                                                         <span className={`text-sm font-bold hover:underline cursor-pointer ${msg.isOwn ? 'text-primary' : 'text-cyan-400'}`}>
-                                                             {resolvedName}
-                                                         </span>
-                                                         <span className="text-[10px] text-text-muted font-mono uppercase tracking-widest">
-                                                             {new Date(msg.timestamp).toLocaleDateString()} {msg.time}
-                                                         </span>
-                                                     </div>
-                                                 )}
-                                                 
-                                                 {editingMsgId === msg.id ? (
-                                                    <div className="mt-1">
-                                                       <div className="flex items-center gap-2 bg-surface border border-white/20 p-2">
-                                                          <input 
-                                                             type="text"
-                                                             autoFocus
-                                                             value={editText}
-                                                             onChange={(e) => setEditText(e.target.value)}
-                                                             onKeyDown={(e) => {
-                                                                if (e.key === 'Enter') handleEditMessage(msg.id);
-                                                                if (e.key === 'Escape') setEditingMsgId(null);
-                                                             }}
-                                                             className="flex-1 bg-transparent border-none text-white focus:outline-none text-sm font-mono tracking-wide"
-                                                          />
+                                         <motion.div
+                                             initial={{ opacity: 0, x: -10 }}
+                                             animate={{ opacity: 1, x: 0 }}
+                                             className={`flex hover:bg-white/5 px-2 py-1 -mx-2 group rounded-sm ${showHeader ? 'mt-4' : 'mt-0'}`}
+                                         >
+                                             <div className="flex gap-4 w-full">
+                                                {/* Avatar or time placeholder */}
+                                                <div className="w-10 flex shrink-0 justify-center">
+                                                    {showHeader ? (
+                                                       <div className="w-10 h-10 rounded-full bg-surface border border-white/20 flex items-center justify-center font-bold text-white uppercase overflow-hidden shrink-0 mt-0.5">
+                                                          {(resolvedName || 'A').charAt(0)}
                                                        </div>
-                                                       <div className="text-[10px] text-text-muted uppercase tracking-widest mt-1">
-                                                          escape to <span className="text-white cursor-pointer hover:underline" onClick={() => setEditingMsgId(null)}>cancel</span> • enter to <span className="text-primary cursor-pointer hover:underline" onClick={() => handleEditMessage(msg.id)}>save</span>
-                                                       </div>
-                                                    </div>
-                                                 ) : (
-                                                    <div className="text-[13px] text-white/90 font-mono leading-relaxed whitespace-pre-wrap group-hover:bg-white/5 inline-block pr-8 relative">
-                                                        {msg.text}
-                                                        {msg.isEdited && (
-                                                           <span className="text-[10px] text-text-muted italic ml-2">(edited)</span>
-                                                        )}
-                                                        {msg.isOwn && (
-                                                           <button 
-                                                              onClick={() => {
-                                                                 setEditingMsgId(msg.id);
-                                                                 setEditText(msg.text);
-                                                              }} 
-                                                              className="absolute -right-4 top-0 opacity-0 group-hover:opacity-100 text-text-muted hover:text-primary transition-colors text-[10px] uppercase font-bold"
-                                                           >
-                                                              edit
-                                                           </button>
-                                                        )}
-                                                    </div>
-                                                 )}
+                                                    ) : (
+                                                       <span className="text-[10px] text-text-muted opacity-0 group-hover:opacity-100 mt-1 font-mono uppercase tracking-tighter">
+                                                          {msg.time}
+                                                       </span>
+                                                    )}
+                                                </div>
+
+                                                 {/* Message Content */}
+                                                 <div className="flex flex-col flex-1 pb-1">
+                                                     {showHeader && (
+                                                         <div className="flex items-end gap-2 mb-1">
+                                                             <span className={`text-sm font-bold hover:underline cursor-pointer ${msg.isOwn ? 'text-primary' : 'text-cyan-400'}`}>
+                                                                 {resolvedName}
+                                                             </span>
+                                                             <span className="text-[10px] text-text-muted font-mono uppercase tracking-widest">
+                                                                 {msg.time}
+                                                             </span>
+                                                         </div>
+                                                     )}
+                                                     
+                                                     {editingMsgId === msg.id ? (
+                                                        <div className="mt-1">
+                                                           <div className="flex items-center gap-2 bg-surface border border-white/20 p-2">
+                                                              <input 
+                                                                 type="text"
+                                                                 autoFocus
+                                                                 value={editText}
+                                                                 onChange={(e) => setEditText(e.target.value)}
+                                                                 onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') handleEditMessage(msg.id);
+                                                                    if (e.key === 'Escape') setEditingMsgId(null);
+                                                                 }}
+                                                                 className="flex-1 bg-transparent border-none text-white focus:outline-none text-sm font-mono tracking-wide"
+                                                              />
+                                                           </div>
+                                                           <div className="text-[10px] text-text-muted uppercase tracking-widest mt-1">
+                                                              escape to <span className="text-white cursor-pointer hover:underline" onClick={() => setEditingMsgId(null)}>cancel</span> • enter to <span className="text-primary cursor-pointer hover:underline" onClick={() => handleEditMessage(msg.id)}>save</span>
+                                                           </div>
+                                                        </div>
+                                                     ) : (
+                                                        <div className="text-[13px] text-white/90 font-mono leading-relaxed whitespace-pre-wrap group-hover:bg-white/5 inline-block pr-8 relative">
+                                                            {msg.text}
+                                                            {msg.isEdited && (
+                                                               <span className="text-[10px] text-text-muted italic ml-2">(edited)</span>
+                                                            )}
+                                                            {msg.isOwn && (
+                                                               <button 
+                                                                  onClick={() => {
+                                                                     setEditingMsgId(msg.id);
+                                                                     setEditText(msg.text);
+                                                                  }} 
+                                                                  className="absolute -right-4 top-0 opacity-0 group-hover:opacity-100 text-text-muted hover:text-primary transition-colors text-[10px] uppercase font-bold"
+                                                               >
+                                                                  edit
+                                                               </button>
+                                                            )}
+                                                        </div>
+                                                     )}
+                                                 </div>
                                              </div>
-                                         </div>
-                                     </motion.div>
+                                         </motion.div>
+                                     </React.Fragment>
                                     );
                                  })
                              )}
                              <div ref={messagesEndRef} />
                          </div>
+
 
                          {/* Input Area */}
                          <div className="p-4 px-6 mb-2">

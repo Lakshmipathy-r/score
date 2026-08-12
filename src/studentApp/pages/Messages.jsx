@@ -1,10 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Paperclip, Smile, MoreVertical, Phone, Video, Search, Shield, Zap } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { useAuthStore } from "../store/authStore";
-import { subscribeToConversations, subscribeToMessages, sendMessage, editMessage } from "../../lib/messageService";
+import { 
+  subscribeToConversations, 
+  subscribeToMessages, 
+  sendMessage, 
+  editMessage,
+  parseMessageDate,
+  formatMessageTime,
+  formatContactTime,
+  getFormattedDateHeader 
+} from "../../lib/messageService";
 import { getUserProfile } from "../../lib/userService";
 
 const nameCache = {};
@@ -17,6 +26,7 @@ const Messages = () => {
    const [newMessage, setNewMessage] = useState("");
    const [editingMsgId, setEditingMsgId] = useState(null);
    const [editText, setEditText] = useState("");
+   const messagesEndRef = useRef(null);
 
    useEffect(() => {
      if (user?.uid) {
@@ -45,6 +55,7 @@ const Messages = () => {
                id: conv.id,
                name: otherNameStr,
                lastMessage: conv.lastMessage,
+               updatedAt: conv.updatedAt,
                status: 'online', 
                unread: 0,
                avatar: otherNameStr.charAt(0).toUpperCase()
@@ -66,22 +77,18 @@ const Messages = () => {
    useEffect(() => {
       if (activeChat && user?.uid) {
          const unsub = subscribeToMessages(activeChat, (data) => {
-            const mappedMessages = data.map(m => ({
-               id: m.id,
-               sender: m.senderId === user.uid ? 'me' : m.senderId,
-               text: m.text,
-               time: (() => {
-                  try {
-                     if (!m.timestamp) return "--:--";
-                     const d = m.timestamp.seconds ? new Date(m.timestamp.seconds * 1000) : new Date(m.timestamp);
-                     return isNaN(d) ? "--:--" : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                  } catch (e) {
-                     return "--:--";
-                  }
-               })(),
-               isOwn: m.senderId === user.uid,
-               isEdited: m.isEdited || false
-            }));
+            const mappedMessages = data.map(m => {
+               const rawDate = parseMessageDate(m.timestamp);
+               return {
+                  id: m.id,
+                  sender: m.senderId === user.uid ? 'me' : m.senderId,
+                  text: m.text,
+                  rawTimestamp: rawDate,
+                  time: formatMessageTime(m.timestamp),
+                  isOwn: m.senderId === user.uid,
+                  isEdited: m.isEdited || false
+               };
+            });
             setMessages(mappedMessages);
          });
          return () => unsub();
@@ -89,6 +96,11 @@ const Messages = () => {
          setMessages([]);
       }
    }, [activeChat, user]);
+
+   // Auto scroll to bottom when messages update or chat changes
+   useEffect(() => {
+      messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
+   }, [messages, activeChat]);
 
    const activeContact = contacts.find((c) => c.id === activeChat);
 
@@ -117,6 +129,8 @@ const Messages = () => {
          console.error("Failed to edit message", err);
       }
    };
+
+   let lastDateHeader = null;
 
    return (
       <div className="min-h-screen bg-background font-mono selection:bg-primary selection:text-black flex flex-col">
@@ -174,11 +188,18 @@ const Messages = () => {
                                     }`}>
                                     {contact.name}
                                  </span>
-                                 {contact.unread > 0 && (
-                                    <span className="text-[10px] bg-accent text-black px-1 font-bold">
-                                       {contact.unread}
-                                    </span>
-                                 )}
+                                 <div className="flex items-center space-x-2 shrink-0">
+                                    {contact.updatedAt && (
+                                       <span className="text-[10px] text-text-muted font-mono opacity-80">
+                                          {formatContactTime(contact.updatedAt)}
+                                       </span>
+                                    )}
+                                    {contact.unread > 0 && (
+                                       <span className="text-[10px] bg-accent text-black px-1 font-bold">
+                                          {contact.unread}
+                                       </span>
+                                    )}
+                                 </div>
                               </div>
                               <p className="text-[10px] text-text-muted truncate font-mono">
                                  {contact.lastMessage}
@@ -197,7 +218,7 @@ const Messages = () => {
                         <div className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(204,255,0,1)]"></div>
                         <div>
                            <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-cyan-400 animate-gradient-x">
-                              {activeContact?.name}
+                              {activeContact?.name || "Select Contact"}
                               <Shield className="w-3 h-3 text-primary" />
                            </h2>
                            <p className="text-[10px] text-text-muted uppercase tracking-widest flex items-center gap-2">
@@ -221,74 +242,100 @@ const Messages = () => {
                   </div>
 
                   {/* Messages Area */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-6 relative">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4 relative custom-scrollbar">
                      <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] pointer-events-none" />
 
-                     {messages.map((msg) => (
-                        <motion.div
-                           key={msg.id}
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'}`}
-                        >
-                           <div className={`max-w-[70%] relative group`}>
-                              {editingMsgId === msg.id ? (
-                                 <div className={`
-                                     px-4 py-3 text-sm font-mono border
-                                     ${msg.isOwn
-                                             ? 'bg-primary/10 border-primary text-white clip-diagonal-reverse'
-                                             : 'bg-surface border-white/20 text-text-muted clip-diagonal'
-                                          }
+                     {messages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-center space-y-2 text-text-muted">
+                           <p className="text-sm uppercase tracking-widest font-mono">No transmission log found</p>
+                           <p className="text-xs font-mono opacity-60">Send a message to start connection</p>
+                        </div>
+                     ) : (
+                        messages.map((msg) => {
+                           const currentDateHeader = getFormattedDateHeader(msg.rawTimestamp);
+                           const showDateDivider = currentDateHeader !== lastDateHeader;
+                           lastDateHeader = currentDateHeader;
+
+                           return (
+                              <React.Fragment key={msg.id}>
+                                 {showDateDivider && (
+                                    <div className="flex items-center justify-center my-6 relative select-none">
+                                       <div className="absolute inset-0 flex items-center">
+                                          <div className="w-full border-t border-white/10" />
+                                       </div>
+                                       <div className="relative px-4 py-1 bg-surface border border-white/15 rounded-full text-[10px] font-mono font-semibold uppercase tracking-widest text-primary shadow-sm backdrop-blur-md">
+                                          {currentDateHeader}
+                                       </div>
+                                    </div>
+                                 )}
+
+                                 <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'}`}
+                                 >
+                                    <div className={`max-w-[70%] relative group`}>
+                                       {editingMsgId === msg.id ? (
+                                          <div className={`
+                                              px-4 py-3 text-sm font-mono border
+                                              ${msg.isOwn
+                                                      ? 'bg-primary/10 border-primary text-white clip-diagonal-reverse'
+                                                      : 'bg-surface border-white/20 text-text-muted clip-diagonal'
+                                                   }
+                                          `}>
+                                             <input 
+                                                type="text"
+                                                autoFocus
+                                                value={editText}
+                                                onChange={(e) => setEditText(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                   if (e.key === 'Enter') handleEditMessage(msg.id);
+                                                   if (e.key === 'Escape') setEditingMsgId(null);
+                                                }}
+                                                className="w-full bg-transparent border-none focus:outline-none text-white font-mono tracking-wide"
+                                             />
+                                             <div className="text-[10px] uppercase tracking-widest mt-2 text-right opacity-70">
+                                                esc to cancel • enter to save
+                                             </div>
+                                          </div>
+                                       ) : (
+                                          <div className={`
+                                        px-4 py-3 text-sm font-mono border relative pr-8
+                                        ${msg.isOwn
+                                                ? 'bg-primary/10 border-primary text-white clip-diagonal-reverse'
+                                                : 'bg-surface border-white/20 text-text-muted clip-diagonal'
+                                             }
+                                     `}>
+                                             {msg.text}
+                                             {msg.isEdited && (
+                                                <span className="text-[10px] text-zinc-500 italic ml-2">(edited)</span>
+                                             )}
+                                             {msg.isOwn && (
+                                                <button 
+                                                   onClick={() => {
+                                                      setEditingMsgId(msg.id);
+                                                      setEditText(msg.text);
+                                                   }}
+                                                   className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-white/50 hover:text-primary transition-colors text-[10px] uppercase font-bold"
+                                                >
+                                                   edit
+                                                </button>
+                                             )}
+                                          </div>
+                                       )}
+                                       <div className={`
+                                     text-[10px] mt-1 opacity-50 uppercase tracking-widest
+                                     ${msg.isOwn ? 'text-right text-primary' : 'text-left text-text-muted'}
                                   `}>
-                                     <input 
-                                        type="text"
-                                        autoFocus
-                                        value={editText}
-                                        onChange={(e) => setEditText(e.target.value)}
-                                        onKeyDown={(e) => {
-                                           if (e.key === 'Enter') handleEditMessage(msg.id);
-                                           if (e.key === 'Escape') setEditingMsgId(null);
-                                        }}
-                                        className="w-full bg-transparent border-none focus:outline-none text-white font-mono tracking-wide"
-                                     />
-                                     <div className="text-[10px] uppercase tracking-widest mt-2 text-right opacity-70">
-                                        esc to cancel • enter to save
-                                     </div>
-                                 </div>
-                              ) : (
-                                  <div className={`
-                                px-4 py-3 text-sm font-mono border relative pr-8
-                                ${msg.isOwn
-                                        ? 'bg-primary/10 border-primary text-white clip-diagonal-reverse'
-                                        : 'bg-surface border-white/20 text-text-muted clip-diagonal'
-                                     }
-                             `}>
-                                     {msg.text}
-                                     {msg.isEdited && (
-                                        <span className="text-[10px] text-zinc-500 italic ml-2">(edited)</span>
-                                     )}
-                                     {msg.isOwn && (
-                                        <button 
-                                           onClick={() => {
-                                              setEditingMsgId(msg.id);
-                                              setEditText(msg.text);
-                                           }}
-                                           className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-white/50 hover:text-primary transition-colors text-[10px] uppercase font-bold"
-                                        >
-                                           edit
-                                        </button>
-                                     )}
-                                  </div>
-                              )}
-                              <div className={`
-                            text-[10px] mt-1 opacity-50 uppercase tracking-widest
-                            ${msg.isOwn ? 'text-right text-primary' : 'text-left text-text-muted'}
-                         `}>
-                                 {msg.time}
-                              </div>
-                           </div>
-                        </motion.div>
-                     ))}
+                                          {msg.time}
+                                       </div>
+                                    </div>
+                                 </motion.div>
+                              </React.Fragment>
+                           );
+                        })
+                     )}
+                     <div ref={messagesEndRef} />
                   </div>
 
                   {/* Input Area */}
